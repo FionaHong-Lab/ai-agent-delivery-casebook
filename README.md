@@ -31,6 +31,5 @@
 
 | Case | Scenario | Focus |
 |-|-|-|
-| Case | Scenario | Focus |
-|-|-|-|
-| 01 | [退换货客服 Agent](case-01-return-refund-agent-boundary.md) | 从退货审核场景拆解 Workflow、Agent 与 Human 的职责边界，设计可验证的人机协作流程 |
+| 01 | [退换货客服 Agent](case-01-return-refund-agent-template.md) | 从退货审核场景拆解 Workflow、Agent 与 Human 的职责边界，设计可验证的人机协作流程 |
+| 02 | [从人工客服流程到 AI Agent](case-02-customer-process-mapping.md) | 在 Agent 设计前进行业务流程映射，发现制度流程与真实执行之间的差异 |
