@@ -31,4 +31,6 @@
 
 | Case | Scenario | Focus |
 |-|-|-|
-| 01 | [退换货客服 Agent](case-01-return-refund-agent-boundary.md) | Workflow / Agent / Human 边界设计，人机协作流程设计 |
+| Case | Scenario | Focus |
+|-|-|-|
+| 01 | [退换货客服 Agent](case-01-return-refund-agent-boundary.md) | 从退货审核场景拆解 Workflow、Agent 与 Human 的职责边界，设计可验证的人机协作流程 |
