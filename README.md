@@ -16,4 +16,4 @@
 
 | Case | Scenario | Focus |
 |-|-|-|
-| 01 | [退换货客服 Agent](cases/01-return-customer-service-agent-boundary.md) | Agent / Workflow / Human 边界设计 |
+| 01 | [退换货客服 Agent](case-01-return-refund-agent-template.md) | Agent / Workflow / Human 边界设计 |
