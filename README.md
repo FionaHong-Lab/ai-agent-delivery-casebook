@@ -1,2 +1,19 @@
-# ai-agent-delivery-casebook
-AI Agent delivery case studies exploring business scenarios, Agent/Workflow/Human boundaries and practical delivery methods.
+# AI Agent Delivery Casebook
+
+这是一个 AI Agent 交付案例库。
+
+通过业务场景拆解，探索：
+- Agent
+- Workflow
+- Human
+
+三者之间的边界设计，以及 AI 应用落地中的交付方法。
+
+> 案例为模拟业务场景，用于展示分析和方案设计过程。
+
+
+## Cases
+
+| Case | Scenario | Focus |
+|-|-|-|
+| 01 | 退换货客服 Agent | Agent / Workflow / Human 边界设计 |
