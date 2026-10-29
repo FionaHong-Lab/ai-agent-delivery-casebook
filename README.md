@@ -41,6 +41,6 @@
 | [01b｜退换货 Agent 边界](./case-01b-return-refund-agent-boundary.md) | 深入分析退货理由与风险判断 | Workflow / Agent / Human 分工、Prompt 草稿与验证 |
 | [02｜从人工客服流程到 AI Agent](./case-02-customer-process-mapping.md) | 对照主管描述与模拟的一线流程 | 业务流程映射与潜在执行差异 |
 | [03｜从 Demo 到可交付 Agent](./case-03-agent-evaluation-before-launch.md) | 分析客服场景中的上线前风险 | 承诺、争议、升级与验证标准 |
-| [04｜AI 模型选型与成本估算工具](./case-04-ai-model-cost-estimator.md) | 用明确的假设比较文本 API 推理成本 | 确定性计算、价格维护、估算边界与测试案例 |
+| [04｜AI 模型选型与成本估算工具](./case-04-ai-model-cost-estimator.md) · [在线体验](https://ai-model-cost.coze.site/) | 用明确的假设比较文本 API 推理成本 | 确定性计算、价格维护、估算边界与测试案例 |
 
 阅读时可以先看 **01a 的整体流程**，再看 **01b 的边界判断**；Case 02 和 Case 03 分别补充流程映射与风险验证的视角。Case 04 则展示确定性问题如何用公式处理，以及如何记录估算边界和待验证事项。
