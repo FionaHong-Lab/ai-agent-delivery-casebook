@@ -1,47 +1,58 @@
 # AI Agent Delivery Casebook
 
-这是一个 AI Agent 交付案例库。
+AI 交付经理的主作品：同一条退换货主线，从流程拆到人机边界、上线风险、灰度回滚和价值。
 
-我从业务场景出发，拆解 **Workflow、Agent 与 Human** 各自负责什么，以及 AI 应用从流程设计到交付验证需要考虑的问题。
-
-> 客服案例基于模拟业务场景；模型成本估算工具案例记录可运行原型的需求与迭代；销售线索判断案例为草稿，记录已确认的交互及验证信息。文中的目标流程、规则和验证标准不等于已在真实业务中上线或通过测试。
+> 客服案例基于模拟业务场景。文中的目标流程、规则、验收门槛和金额均为假设或练习，不等于已在真实业务中上线或通过测试。模型成本估算工具记录的是可运行原型的需求与迭代。销售线索案例是进行中草稿。
 
 ---
 
-## Featured Practice｜AI 客服 Agent 交付实践
+## 主作品｜端到端交付证据
 
-以电商退换货客服为场景，梳理业务流程，分析 Agent 与人工的边界，再围绕客服场景设计上线前的风险验证。
+**[Case 06｜退换货客服 Agent 端到端交付](./case-06-return-refund-e2e-delivery.md)**
 
-**[在线体验退换货客服 Agent ↗](https://returns-review-web.coze.site/returns-review-agent)**
+要证明的不是 Demo 能跑，而是标准单可分流、例外必人审、上线可验收、出问题可回滚，并且账算得清。
 
-在线版本是可体验原型。它与文档中的目标流程、Prompt 草稿和测试案例之间的具体对应关系，需要结合实际配置与测试结果确认。
+支撑章节（同一主线）：[01a 流程](./case-01a-return-refund-workflow.md) → [01b 边界](./case-01b-return-refund-agent-boundary.md) → [02 一线映射](./case-02-customer-process-mapping.md) → [03 上线风险](./case-03-agent-evaluation-before-launch.md)
+
+**面试/招聘请先读 Case 06，再按需下钻 01b / 03。**
+
+原型演示能力；完整验收与灰度见 Case 06：[在线体验退换货客服 Agent ↗](https://returns-review-web.coze.site/returns-review-agent)
 
 ---
 
-## Method
+## Cases
 
-每个案例关注四个核心问题：
+### 退换货主线
+
+| Case | 内容 | 关注重点 |
+| --- | --- | --- |
+| [06｜端到端交付](./case-06-return-refund-e2e-delivery.md) · **主作品** | 把验收、灰度、回滚和价值收成一份证据 | 做与不做、L1–L4、DoD、G0–G3、假设价值 |
+| [01a｜退换货业务流程](./case-01a-return-refund-workflow.md) | 从客户请求到处理结果 | Workflow 节点、输入输出与异常去向 |
+| [01b｜退换货 Agent 边界](./case-01b-return-refund-agent-boundary.md) | 退货缘由判断的人机边界；商品核验为进行中 | Workflow / Agent / Human、Prompt 与验证 |
+| [02｜从人工客服流程到 AI Agent](./case-02-customer-process-mapping.md) | 对照主管描述与模拟的一线流程 | 业务流程映射与潜在执行差异 |
+| [03｜从 Demo 到可交付 Agent](./case-03-agent-evaluation-before-launch.md) | 上线前会不会捅娄子 | 承诺、争议、升级与风险验收 |
+
+### 工具实践
+
+| Case | 内容 | 关注重点 |
+| --- | --- | --- |
+| [04｜AI 模型选型与成本估算工具](./case-04-ai-model-cost-estimator.md) · [在线体验](https://ai-model-cost.coze.site/) | 用明确假设比较文本 API 推理成本 | 确定性计算、价格维护、估算边界与测试案例 |
+
+### 进行中（草稿）
+
+| Case | 内容 | 关注重点 |
+| --- | --- | --- |
+| [05｜销售线索分析工具（进行中｜草稿）](./case-05-sales-lead-analysis.md) | 线索输入与手动触发分析，未完成 | 已确认的交互规则；判断规则与人机边界待补充 |
+
+---
+
+## 方法
+
+每篇案例都回到四个问题：
 
 1. 业务问题是什么？
 2. 哪些环节适合 Workflow 自动执行？
 3. 哪些情况需要 Agent 理解和综合信息？
 4. 哪些决定必须保留 Human 介入？
 
-目标不是追求最大化自动化，而是让流程的依据、责任和异常去向都能被看见，并为后续验证提供基础。
-
----
-
-## Cases
-
-前四份文档从不同角度展开同一类客服交付问题。Case 01a 关注完整业务流程，Case 01b 则深入分析其中关键节点的人机边界。
-
-| Case | 内容 | 关注重点 |
-| --- | --- | --- |
-| [01a｜退换货业务流程](./case-01a-return-refund-workflow.md) | 从客户请求到处理结果 | Workflow 节点、输入输出与异常去向 |
-| [01b｜退换货 Agent 边界](./case-01b-return-refund-agent-boundary.md) | 深入分析退货理由与风险判断 | Workflow / Agent / Human 分工、Prompt 草稿与验证 |
-| [02｜从人工客服流程到 AI Agent](./case-02-customer-process-mapping.md) | 对照主管描述与模拟的一线流程 | 业务流程映射与潜在执行差异 |
-| [03｜从 Demo 到可交付 Agent](./case-03-agent-evaluation-before-launch.md) | 分析客服场景中的上线前风险 | 承诺、争议、升级与验证标准 |
-| [04｜AI 模型选型与成本估算工具](./case-04-ai-model-cost-estimator.md) · [在线体验](https://ai-model-cost.coze.site/) | 用明确的假设比较文本 API 推理成本 | 确定性计算、价格维护、估算边界与测试案例 |
-| [05｜销售线索分析工具｜AI 应用实践](./case-05-sales-lead-analysis.md) | 线索输入与手动触发分析（草稿） | 交互规则、请求状态与已确认的验证记录 |
-
-阅读时可以先看 **01a 的整体流程**，再看 **01b 的边界判断**；Case 02 和 Case 03 分别补充流程映射与风险验证的视角。Case 04 则展示确定性问题如何用公式处理，以及如何记录估算边界和待验证事项。Case 05 记录销售线索分析的交互设计与验证，判断规则和人机边界仍待补充。
+目标不是把自动化做满，而是让依据、责任和异常去向都看得见，并能被验收。
