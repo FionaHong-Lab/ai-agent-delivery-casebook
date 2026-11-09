@@ -46,6 +46,20 @@ AI 交付经理的主作品：同一条退换货主线，从流程拆到人机�
 | --- | --- | --- |
 | [05｜销售线索 Agent 交付](./case-05-sales-lead-analysis.md) · [在线体验](https://sales-lead-web.coze.site) | 把咨询或沟通记录整理成可复核的线索 | 七段输出、冲突只标记、话术草稿、人工决定是否跟进 |
 
+## 职业交付证据 / Career Evidence
+
+**与上方模拟场景练习分开；面试主入口仍是 Case 06。**
+
+[职业交付证据索引](./career/)整理美图、喜马拉雅、虎扑与高顿的真实交付经历，并把其中可验证的项目推进能力映射到 AI 交付：场景拆解、Workflow / Agent / Human 边界、验收与风险控制、跨角色翻译。没有公开依据的数字、项目细节和成果均以 `TODO(Fiona)` 保留，未做补写。
+
+| Career Case | 真实经历 | 重点 |
+| --- | --- | --- |
+| [C01｜美图秀秀高频迭代](./career/case-c01-meitu-xiuxiu-iteration.md) | 项目经理 | 版本节奏、验收与跨角色协作 |
+| [C02｜虎扑欧洲杯专项](./career/case-c02-hupu-euro-cup.md) | 项目经理 | 关键路径、风险预案与备份方案 |
+| [C03｜高顿 SaaS 敏捷协同](./career/case-c03-gaodun-saas-scrum.md) | 敏捷工程师 | 多业务线迭代、依赖与验收 |
+| [C04｜高顿研发效能平台](./career/case-c04-gaodun-rd-efficiency.md) | 研发效能专项 | 数据可见性、指标与风险信号 |
+| [C05｜喜马拉雅社区与微信生态](./career/case-c05-ximalaya-community-wechat.md) | 项目经理 | 节点拆解、生态规则与多方对齐 |
+
 ---
 
 ## 方法
