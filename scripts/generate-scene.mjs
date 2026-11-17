@@ -32,10 +32,18 @@ const markerStart = '<!-- ORDER-SCENE:START -->';
 const markerEnd = '<!-- ORDER-SCENE:END -->';
 const file = 'case-07-shenzhou-capacity-shift-pilot.md';
 let source = readFileSync(file, 'utf8');
-const block = `${markerStart}\n${content}\n${markerEnd}`;
+const block = `${markerStart}\n## 九、订单变化场景\n\n${content}\n${markerEnd}`;
 const summary = content.replace(/ · \[下载订单场景说明 PDF\]\([^)]+\)/, '').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1：$2').replace(/<[^>]+>/g, '').replace(/\*\*/g, '').replace(/^### /gm, '').replace(/^[-] /gm, '方案：');
-if (source.includes(markerStart)) source = source.replace(new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}`), block);
-else source += `\n\n---\n\n${block}\n`;
+const sourceHeading = '## 来源（详见 research.md）';
+const blockPattern = new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}`);
+if (!source.includes(sourceHeading)) throw new Error('找不到来源章节，未修改文档');
+if (source.includes(markerStart) && source.indexOf(markerStart) < source.indexOf(sourceHeading)) {
+  source = source.replace(blockPattern, block);
+} else {
+  source = source.replace(new RegExp(`\\n\\n---\\n\\n${markerStart}[\\s\\S]*?${markerEnd}\\s*$`), '\n');
+  if (source.includes(markerStart)) throw new Error('场景区块位置异常，未修改文档');
+  source = source.replace(sourceHeading, `${block}\n\n---\n\n${sourceHeading}`);
+}
 if (process.argv.includes('--check')) {
   if (source !== readFileSync(file, 'utf8')) { console.error('场景说明不同步'); process.exit(1); }
   if (summary !== readFileSync('scripts/scene-summary.txt', 'utf8')) { console.error('PDF 源内容不同步'); process.exit(1); }

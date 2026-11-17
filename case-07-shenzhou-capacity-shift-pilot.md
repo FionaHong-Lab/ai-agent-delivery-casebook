@@ -217,20 +217,9 @@
 
 ---
 
-## 来源（详见 research.md）
-- [S2] 申洲国际 2025 年中期报告：https://www.hkexnews.hk/listedco/listconews/sehk/2025/0929/2025092900839_c.pdf
-- [S3] 申洲国际 2026 年中期业绩公告：https://www.hkexnews.hk/listedco/listconews/sehk/2026/0825/2026082500357_c.pdf
-- [S5] 东吴证券 2025 年业绩点评（客户占比）：https://www.nxny.com/report/view_6251301.html
-- [S9] 申洲国际 2025 年度 ESG 报告：https://www.hkexnews.hk/listedco/listconews/sehk/2026/0423/2026042300679_c.pdf
-- [S16] 安庆市工商联报道：http://www.aqgsl.org.cn/html/2025/gongzuodongtai_1117/5428.html
-- [S17] 安庆新闻网《申洲安徽智能制造项目开工》：http://www.aqnews.com.cn/2025/04/10/99773302.html
-- [S20] 安徽日报《望江纺织服装产业集群向优而进》：http://ah.people.com.cn/BIG5/n2/2026/1105/c358428-41742264.html
-- [S22] 望江发布《申洲针织开足马力》：https://info.texnet.com.cn/detail-1068256.html
-
-
----
-
 <!-- ORDER-SCENE:START -->
+## 九、订单变化场景
+
 ### A-0412
 
 **订单变化：客户 A 加单（虚构示例）**
@@ -253,3 +242,16 @@
 
 公开资料推演，非真实项目。
 <!-- ORDER-SCENE:END -->
+
+---
+
+## 来源（详见 research.md）
+- [S2] 申洲国际 2025 年中期报告：https://www.hkexnews.hk/listedco/listconews/sehk/2025/0929/2025092900839_c.pdf
+- [S3] 申洲国际 2026 年中期业绩公告：https://www.hkexnews.hk/listedco/listconews/sehk/2026/0825/2026082500357_c.pdf
+- [S5] 东吴证券 2025 年业绩点评（客户占比）：https://www.nxny.com/report/view_6251301.html
+- [S9] 申洲国际 2025 年度 ESG 报告：https://www.hkexnews.hk/listedco/listconews/sehk/2026/0423/2026042300679_c.pdf
+- [S16] 安庆市工商联报道：http://www.aqgsl.org.cn/html/2025/gongzuodongtai_1117/5428.html
+- [S17] 安庆新闻网《申洲安徽智能制造项目开工》：http://www.aqnews.com.cn/2025/04/10/99773302.html
+- [S20] 安徽日报《望江纺织服装产业集群向优而进》：http://ah.people.com.cn/BIG5/n2/2026/1105/c358428-41742264.html
+- [S22] 望江发布《申洲针织开足马力》：https://info.texnet.com.cn/detail-1068256.html
+
