@@ -9,9 +9,9 @@ const order = ORDERS.find(item => item.id === SCENE.orderId);
 const late = Math.round((Date.parse(state.evaluation.own.finishAfter + 'T00:00:00Z') - Date.parse(SCENE.requestedDate + 'T00:00:00Z')) / 86400000);
 const outcomes = ['full', 'partial', 'reschedule'].map(strategy => reduce(state, { type: 'set-strategy', strategy }).evaluation);
 const rows = outcomes.map(e => `- ${e.choiceTitle}：${e.choiceDetail}`);
-const content = `### 订单变化：客户 A 加单（虚构示例）
+const content = `### A-0412
 
-<a id="scene-${SCENE.id}"></a>
+**订单变化：客户 A 加单（虚构示例）**
 
 ${SCENE.disclaimer}
 
@@ -33,7 +33,7 @@ const markerEnd = '<!-- ORDER-SCENE:END -->';
 const file = 'case-07-shenzhou-capacity-shift-pilot.md';
 let source = readFileSync(file, 'utf8');
 const block = `${markerStart}\n${content}\n${markerEnd}`;
-const summary = content.replace(/ · \[下载订单场景说明 PDF\]\([^)]+\)/, '').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1：$2').replace(/<[^>]+>/g, '').replace(/^### /gm, '').replace(/^[-] /gm, '方案：');
+const summary = content.replace(/ · \[下载订单场景说明 PDF\]\([^)]+\)/, '').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1：$2').replace(/<[^>]+>/g, '').replace(/\*\*/g, '').replace(/^### /gm, '').replace(/^[-] /gm, '方案：');
 if (source.includes(markerStart)) source = source.replace(new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}`), block);
 else source += `\n\n---\n\n${block}\n`;
 if (process.argv.includes('--check')) {
