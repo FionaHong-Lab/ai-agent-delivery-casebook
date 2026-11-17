@@ -7,11 +7,18 @@ import {
   STAGES,
   STRATEGIES,
 } from "./data.js";
-import { createInitialState, formatInt, reduce } from "./calc.js";
+import { createInitialState, evaluate, formatInt, reduce } from "./calc.js";
+import { SCENE } from "./scene.js";
 
 const app = document.getElementById("app");
 const live = document.getElementById("live");
 let state = createInitialState();
+const sceneParam = new URLSearchParams(window.location.search).get("scene");
+let sceneOpen = sceneParam === SCENE.id;
+let needsReview = false;
+app.addEventListener("toggle", (event) => {
+  if (event.target.id === "scene-details") sceneOpen = event.target.open;
+}, true);
 
 document.getElementById("reset-top").addEventListener("click", () => dispatch({ type: "reset" }));
 app.addEventListener("input", onEdit);
@@ -19,6 +26,9 @@ app.addEventListener("change", onEdit);
 app.addEventListener("click", onClick);
 
 function dispatch(action) {
+  if (action.type === "apply" && needsReview) return;
+  if (action.type === "set-form" || action.type === "set-line-rate") needsReview = true;
+  if (action.type === "evaluate" || action.type === "reset") needsReview = false;
   state = reduce(state, action);
   if (live) live.textContent = state.notice || "";
   render();
@@ -74,6 +84,7 @@ function view(current) {
   const evaluation = current.evaluation;
   return `
     ${steps(current)}
+    ${sceneCard(current)}
     <div class="layout">
       ${formCard(current)}
       ${reviewCard(current)}
@@ -83,9 +94,12 @@ function view(current) {
         <h2 id="board-title">交期风险表</h2>
         <span class="light ${statusTone(current)}">${esc(statusText(current))}</span>
       </div>
-      <p class="quiet">变更前是示例日 ${ANCHOR} 的底账。变更后只按当前输入预览。套用不会叠加，撤销回到这张底账。</p>
+      <p class="quiet">变更前是示例日 ${ANCHOR} 的底账。变更后按当前输入预览。套用不会叠加；撤销套用后，当前预览仍保留。</p>
+      <h3>选择一个回复方案，看风险怎么变化</h3>
+      <p class="hint">同一份输入分别试算；切换方案不会累加数量。结果是示例规则，不是对客户的承诺。</p>
       <div class="choices" role="radiogroup" aria-label="回复选项">${strategyChoices(current)}</div>
       ${board("变更前", evaluation.rowsBefore, "before")}
+      ${needsReview ? `<p class="hint">输入已改变，请点击“评估影响”确认当前预览后再套用。</p>` : ""}
       ${evaluation.ok ? board("变更后", evaluation.rowsAfter, "after") : `<p class="error">变更后先空着。${esc(evaluation.error.message)}</p>`}
       <p class="footnote">灯：红 = 晚于交期或配套不齐；黄 = 缓冲少于 2 天、数对不上或停机；灰 = 口头数或缺数；绿 = 算得清且不晚。灯只是提示，回复由人决定。</p>
     </section>
@@ -112,6 +126,28 @@ function view(current) {
     </details>
     <p class="footnote">示例数据・非企业内部系统。公开资料推演，非真实项目。客户只有 A / B / C / D。</p>
   `;
+}
+
+function sceneCard(current) {
+  const e = current.evaluation;
+  const matches = e.ok && e.orderId === SCENE.orderId && e.type === "add" && e.qty === SCENE.additionalPieces;
+  const finish = matches ? e.own.finishAfter : null;
+  const days = finish ? Math.round((Date.parse(finish + "T00:00:00Z") - Date.parse(SCENE.requestedDate + "T00:00:00Z")) / 86400000) : null;
+  const check = !matches ? "当前输入与固定示例不同，请先恢复默认示例，再比较客户希望日期。" : !finish ? "缺少有效日均或剩余量，无法判断希望日期。" : days > 0 ? `按当前输入，本线预计 ${finish} 完工，比客户希望的 ${SCENE.requestedDate} 晚 ${days} 天；该日期不能直接当成可承诺日期。` : `按当前输入，本线预计 ${finish} 完工，可在客户希望的 ${SCENE.requestedDate} 前完成；仍需人核实其他限制。`;
+  return `<section class="card scene" id="scene-${esc(SCENE.id)}" aria-labelledby="scene-title">
+    <div class="section-head"><h2 id="scene-title">客户 A · 订单变化场景</h2><span class="light tone-yellow">虚构情节</span></div>
+    <p>${esc(SCENE.disclaimer)}</p>
+    ${sceneParam && sceneParam !== SCENE.id ? `<p class="error">找不到场景 ${esc(sceneParam)}，已显示默认示例。</p>` : ""}
+    <details id="scene-details" ${sceneOpen ? "open" : ""}>
+      <summary>查看场景详情与公开背景</summary>
+      <p>示例日 ${esc(SCENE.baselineDate)}：客户 A 希望 A-0412 加 6,000 件，原交期 11/28 不变；另一项待检验的希望日期为 12/02。新厂吊挂 3 线缝制中，示例设定面料已到、已裁 70%。</p>
+      <p><strong>公开背景：</strong>迅销截至 ${esc(SCENE.evidenceDate)} 的生产伙伴名单第 3 页第 231 项列有 Shenzhou Knitting (Anhui) Co., Ltd.。名单包含直接和间接合作工厂，不能据此确定本示例对应品牌或订单。 <a href="${esc(SCENE.evidenceUrl)}">查看官方名单</a></p>
+      <p><strong>12/02 可行性：</strong>${esc(check)}</p>
+      <p>固定规则试算，不是实时 AI；已投入不等于损失。方案由人审阅和决定。</p>
+      <p>场景版本 ${esc(SCENE.version)} · <a href="${esc(SCENE.docUrl)}">阅读同一场景说明</a></p>
+      <button type="button" class="btn ghost" data-action="reset">载入固定示例</button>
+    </details>
+  </section>`;
 }
 
 function steps(current) {
@@ -249,10 +285,15 @@ function reviewCard(current) {
 function strategyChoices(current) {
   return STRATEGIES.map((item) => {
     const choice = current.evaluation.ok ? current.evaluation.choices[item.id] : null;
+    const result = current.evaluation.ok ? evaluate(current.form, item.id, current.lineRates) : null;
+    const finish = result?.own?.finishAfter || "未知";
+    const borrow = result?.borrow?.known ? `${formatInt(result.borrow.pieces)} 件` : "未知";
     const on = current.strategy === item.id;
     return `<label class="choice ${on ? "is-on" : ""}">
-      <input type="radio" name="strategy" value="${item.id}" ${on ? "checked" : ""}>
-      <span><strong>${esc(choice?.title || item.label)}</strong><small>${esc(choice?.detail || "先把数量填成可以计算的数")}</small></span>
+      <input id="strategy-${item.id}" type="radio" name="strategy" value="${item.id}" ${on ? "checked" : ""}>
+      <span><strong>${esc(choice?.title || item.label)}</strong>
+        ${result ? `<span class="choice-metrics"><span>本线预计完工 <b>${esc(finish)}</b></span><span>需借产量 <b>${esc(borrow)}</b></span><span>快评 <b>${esc(lightName(result.light))}</b></span></span>` : ""}
+        <small>${esc(choice?.detail || "")}</small></span>
     </label>`;
   }).join("");
 }
@@ -296,10 +337,11 @@ function statusTone(current) {
 }
 
 function applyDisabled(current) {
-  return !current.evaluation.ok || current.applied?.id === current.evaluation.id;
+  return needsReview || !current.evaluation.ok || current.applied?.id === current.evaluation.id;
 }
 
 function applyLabel(current) {
+  if (needsReview) return "请先重新评估";
   if (!current.evaluation.ok) return "先改到可以计算";
   if (current.applied?.id === current.evaluation.id) return "这次已经套用";
   if (current.applied) return "用这次预览替换";

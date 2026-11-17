@@ -5,11 +5,19 @@ on:
   pull_request:
     paths:
       - "demos/order-risk/**"
+      - "scripts/**"
+      - "case-07-shenzhou-capacity-shift-pilot.md"
+      - "assets/case-07/order-change-scene-v2.pdf"
+      - "订单风险-本地预览.html"
       - ".github/workflows/pages-order-risk.yml"
   push:
     branches: [main]
     paths:
       - "demos/order-risk/**"
+      - "scripts/**"
+      - "case-07-shenzhou-capacity-shift-pilot.md"
+      - "assets/case-07/order-change-scene-v2.pdf"
+      - "订单风险-本地预览.html"
       - ".github/workflows/pages-order-risk.yml"
 
 permissions:
@@ -26,7 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: node --test demos/order-risk/tests/smoke.test.js
+      - run: node --test demos/order-risk/tests/*.test.js
+      - run: node scripts/build-preview.mjs --check
+      - run: node scripts/generate-scene.mjs --check
 
   deploy:
     needs: test
@@ -42,7 +52,7 @@ jobs:
           mkdir -p _site
           cp demos/order-risk/index.html demos/order-risk/styles.css \
             demos/order-risk/app.js demos/order-risk/calc.js \
-            demos/order-risk/data.js demos/order-risk/.nojekyll _site/
+            demos/order-risk/data.js demos/order-risk/scene.js demos/order-risk/.nojekyll _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

@@ -1226,7 +1226,7 @@ export function reduce(state, action) {
     }
     case "undo": {
       if (!state.applied) return { ...state, notice: "当前没有需要撤销的套用。" };
-      return { ...state, applied: null, notice: "已撤销。风险表回到示例底账，这一次变更没有留下。" };
+      return { ...state, applied: null, notice: "已撤销本地套用；当前输入和试算预览仍保留，可继续修改或重置。" };
     }
     case "reset":
       return { ...createInitialState(), notice: "已恢复默认示例：客户A / A-0412 / 加 6,000 件。" };

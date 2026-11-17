@@ -4,8 +4,21 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { createInitialState, finishDate, reduce } from "../calc.js";
+import { SCENE } from "../scene.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
+
+test("fixed scenario agrees with the calculation and keeps requested date separate", () => {
+  const state = createInitialState();
+  assert.equal(state.form.orderId, SCENE.orderId);
+  assert.equal(Number(state.form.qty), SCENE.additionalPieces);
+  assert.equal(state.evaluation.anchor, SCENE.baselineDate);
+  assert.equal(SCENE.requestedDate, "2026-12-02");
+  assert.equal(state.evaluation.own.finishAfter, "2026-12-05");
+  const changed = reduce(state, { type: "set-strategy", strategy: "reschedule" });
+  assert.equal(changed.evaluation.promiseDue, "2026-12-05");
+  assert.match(SCENE.disclaimer, /虚构示例/);
+});
 
 test("baseline finishes match the sample board", () => {
   const rows = Object.fromEntries(createInitialState().evaluation.rowsBefore.map((row) => [row.id, row]));

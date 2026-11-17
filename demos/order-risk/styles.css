@@ -59,6 +59,10 @@ legend { font-size: 0.85rem; font-weight: 650; padding: 0; }
 }
 .layout { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 16px; align-items: start; }
 .stack { display: grid; gap: 16px; margin-top: 16px; }
+.scene { margin-bottom: 16px; border-left: 4px solid #b45309; }
+.scene details { margin-top: 10px; }
+.scene summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
+.scene details p { margin: 10px 0; }
 
 .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .step {
@@ -94,6 +98,12 @@ input[aria-invalid="true"] { border-color: var(--red); background: #fff7f8; }
 .choice.is-on, .type:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
 .choice small, .hint, .quiet { display: block; color: var(--muted); font-weight: 450; font-size: 0.82rem; }
 .choice strong { font-weight: 700; }
+.choices { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 12px 0 20px; }
+.choice { padding: 14px; }
+.choice > span { display: grid; gap: 8px; min-width: 0; }
+.choice-metrics { display: grid; gap: 4px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 0; color: var(--muted); font-size: .8rem; }
+.choice-metrics span { display: flex; justify-content: space-between; gap: 8px; }
+.choice-metrics b { color: var(--ink); }
 
 .btn {
   min-height: 44px; border-radius: 10px; border: 1px solid transparent;
@@ -157,6 +167,7 @@ th { font-size: 0.8rem; color: var(--muted); font-weight: 650; }
   h1 { font-size: 1.4rem; }
 }
 @media (max-width: 720px) {
+  .choices { grid-template-columns: 1fr; }
   .grid-2, .types { grid-template-columns: 1fr; }
   .board-head { display: none; }
   .board-row {

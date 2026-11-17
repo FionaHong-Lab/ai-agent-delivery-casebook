@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>订单变更与交期风险</title>
+  <style>
+:root {
+  color-scheme: light;
+  --ink: #1c2430;
+  --muted: #5c6773;
+  --line: #d5dde6;
+  --paper: #f3f5f8;
+  --card: #fff;
+  --blue: #1d4e89;
+  --blue-soft: #e8f1fb;
+  --peach: #fff6ee;
+  --badge: #8a3b12;
+  --red-bg: #fdecee;
+  --red: #9f1239;
+  --yellow-bg: #fff6d8;
+  --yellow: #854d0e;
+  --grey-bg: #eceff3;
+  --grey: #374151;
+  --green-bg: #e5f6ec;
+  --green: #166534;
+  --shadow: 0 1px 2px rgba(28, 36, 48, 0.06);
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-size: 16px; line-height: 1.5; }
+button, input, select { font: inherit; color: inherit; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: 1.7rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.05rem; }
+h3 { font-size: 0.95rem; }
+
+.skip {
+  position: absolute; left: 12px; top: -40px; background: var(--blue); color: #fff;
+  padding: 8px 12px; border-radius: 8px; z-index: 5;
+}
+.skip:focus { top: 8px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+}
+
+.top { background: var(--peach); border-bottom: 1px solid #f0e0d2; padding: 14px 20px 18px; }
+.top-bar, .title-row, .banners { max-width: 1180px; margin: 0 auto; }
+.top-bar { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+fieldset { border: 0; margin: 0 0 10px; padding: 0; }
+legend { font-size: 0.85rem; font-weight: 650; padding: 0; }
+.meta { color: var(--muted); font-size: 0.85rem; }
+.banners { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px auto; }
+.banner {
+  background: var(--badge); color: #fff; border-radius: 999px;
+  padding: 6px 12px; font-size: 0.92rem; font-weight: 700;
+}
+.lede { color: var(--muted); max-width: 46rem; margin-top: 6px; }
+
+#main { max-width: 1180px; margin: 0 auto; padding: 16px 16px 48px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow); padding: 16px;
+}
+.layout { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; margin-top: 16px; }
+.scene { margin-bottom: 16px; border-left: 4px solid #b45309; }
+.scene details { margin-top: 10px; }
+.scene summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
+.scene details p { margin: 10px 0; }
+
+.steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.step {
+  display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.9rem;
+}
+.step i {
+  width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center;
+  background: #e5eaf0; font-style: normal; font-size: 0.8rem;
+}
+.step.is-on { color: var(--ink); font-weight: 700; }
+.step.is-on i, .step.is-done i { background: var(--blue); color: #fff; }
+
+label, .field span { display: block; font-size: 0.85rem; font-weight: 650; margin-bottom: 4px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { margin-bottom: 10px; }
+input[type="text"], input[type="date"], select {
+  width: 100%; min-height: 44px; border: 1px solid #c5d0dc; border-radius: 10px;
+  padding: 8px 10px; background: #fff;
+}
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 3px solid #2563eb; outline-offset: 2px;
+}
+input[aria-invalid="true"] { border-color: var(--red); background: #fff7f8; }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 500; min-height: 44px; }
+.check input { width: 1.1rem; height: 1.1rem; }
+
+.types, .choices { display: grid; gap: 8px; }
+.types { grid-template-columns: 1fr 1fr; }
+.choice, .type {
+  display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--line);
+  border-radius: 12px; padding: 8px 10px; background: #fff; min-height: 44px;
+}
+.choice.is-on, .type:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
+.choice small, .hint, .quiet { display: block; color: var(--muted); font-weight: 450; font-size: 0.82rem; }
+.choice strong { font-weight: 700; }
+.choices { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 12px 0 20px; }
+.choice { padding: 14px; }
+.choice > span { display: grid; gap: 8px; min-width: 0; }
+.choice-metrics { display: grid; gap: 4px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 0; color: var(--muted); font-size: .8rem; }
+.choice-metrics span { display: flex; justify-content: space-between; gap: 8px; }
+.choice-metrics b { color: var(--ink); }
+
+.btn {
+  min-height: 44px; border-radius: 10px; border: 1px solid transparent;
+  padding: 8px 14px; cursor: pointer; background: var(--blue); color: #fff; font-weight: 700;
+}
+.btn.ghost { background: #fff; color: var(--ink); border-color: #c5d0dc; }
+.btn.wide { width: 100%; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.bar { height: 10px; background: #e6ebf1; border-radius: 999px; overflow: hidden; margin: 6px 0; }
+.bar i { display: block; height: 100%; background: var(--blue); }
+.bar.over i { background: var(--red); }
+.bar.near i { background: #d97706; }
+
+.light {
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+  padding: 2px 8px; font-weight: 700; font-size: 0.85rem;
+}
+.tone-red { background: var(--red-bg); color: var(--red); }
+.tone-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.tone-grey { background: var(--grey-bg); color: var(--grey); }
+.tone-green { background: var(--green-bg); color: var(--green); }
+.row-red { background: #fff8f8; }
+.row-yellow { background: #fffdf5; }
+.row-grey { background: #fafbfc; }
+.row-green { background: #f7fdf9; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.chip { background: #f4f7fb; border-radius: 10px; padding: 8px 10px; font-size: 0.88rem; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.8rem; color: var(--muted); font-weight: 650; }
+.callout { background: #f7fafc; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+.callout strong { display: block; }
+.error { background: var(--red-bg); color: var(--red); border-radius: 10px; padding: 8px 10px; }
+.trace { margin: 8px 0 0; padding-left: 1.2rem; }
+.trace li { margin: 4px 0; }
+.people { display: flex; flex-wrap: wrap; gap: 8px; }
+.person { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; min-width: 12rem; flex: 1; }
+.person b { display: block; }
+
+.section-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.board { overflow-x: auto; }
+.board-row {
+  display: grid;
+  grid-template-columns: 52px 84px 64px 108px minmax(110px, 1.1fr) 72px 64px 72px minmax(180px, 1.8fr);
+  gap: 6px 8px; padding: 8px; border-bottom: 1px solid var(--line); align-items: start;
+}
+.board-head { color: var(--muted); font-size: 0.78rem; font-weight: 700; }
+.cell.note small { display: block; color: var(--muted); }
+.is-changed { box-shadow: inset 3px 0 0 var(--blue); }
+.rates { width: 100%; font-size: 0.85rem; }
+.rates input { min-height: 36px; }
+.footnote { color: var(--muted); font-size: 0.82rem; margin-top: 8px; }
+.noscript { margin: 16px; }
+
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  h1 { font-size: 1.4rem; }
+}
+@media (max-width: 720px) {
+  .choices { grid-template-columns: 1fr; }
+  .grid-2, .types { grid-template-columns: 1fr; }
+  .board-head { display: none; }
+  .board-row {
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px;
+  }
+  .cell[data-label]::before {
+    content: attr(data-label); display: block; color: var(--muted); font-size: 0.75rem;
+  }
+  .cell.note { grid-column: 1 / -1; }
+}
+
+</style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到内容</a>
+  <header class="top">
+    <div class="top-bar">
+      <p class="meta">本地演示 · 无需登录 · 不连接企业系统 · 示例日 2026-11-20（周五）</p>
+      <button type="button" class="btn ghost" id="reset-top">重置</button>
+    </div>
+    <div class="banners">
+      <p class="banner">示例数据・非企业内部系统</p>
+      <p class="banner">公开资料推演，非真实项目</p>
+    </div>
+    <div class="title-row">
+      <div>
+        <h1>订单变更与交期风险</h1>
+        <p class="lede">改一笔订单，先看本线哪天做完、要借走谁的缓冲，再决定怎么回复。数字从示例日 2026-11-20 起算，不用你打开页面的当天。</p>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <div id="app"></div>
+  </main>
+  <p id="live" class="sr-only" aria-live="polite"></p>
+  <noscript><p class="noscript">请开启 JavaScript。这页只在你的浏览器里计算，没有服务器。</p></noscript>
+  <script>
+/** 示例底账。数字只服务这页演示，不是企业实绩。 */
+
+const ANCHOR = "2026-11-20";
+const ANCHOR_LABEL = "2026-11-20（周五）";
+
+/** 部分接时，另一半承诺日 = 原承诺日 + 7 个日历日（假设）。 */
+const DEFERRAL_DAYS = 7;
+/** 缓冲少于此天数则交期灯为黄（假设）。 */
+const BUFFER_DAYS = 2;
+/** 系统数与手记差超过此比例则黄（假设）。 */
+const GAP_RATIO = 0.03;
+/** 未开裁且承诺日远于此天数，审阅停在跟单员（假设）。 */
+const REVIEW_HORIZON_DAYS = 7;
+
+const MAX_PIECES = 10_000_000;
+const MAX_RATE = 1_000_000;
+const MAX_DAYS = 3660;
+const MAX_DELAY_DAYS = 3650;
+
+const LINES = [
+  {
+    id: "new-3",
+    name: "新厂吊挂3线",
+    plant: "新厂",
+    kind: "new",
+    plannedRate: 2400,
+    actualRate: 1420,
+    status: "running",
+    teardownDate: null,
+    note: "在产。完工只用近3日日均。",
+  },
+  {
+    id: "new-1",
+    name: "新厂吊挂1线",
+    plant: "新厂",
+    kind: "new",
+    plannedRate: 2000,
+    actualRate: 1600,
+    status: "running",
+    teardownDate: null,
+    note: "在产。系统数和手记不一致。",
+  },
+  {
+    id: "new-2",
+    name: "新厂吊挂2线",
+    plant: "新厂",
+    kind: "new",
+    plannedRate: 2200,
+    actualRate: null,
+    status: "down",
+    teardownDate: null,
+    note: "设备停机，近3日日均缺失。",
+  },
+  {
+    id: "split-b",
+    name: "老厂5线+新厂1线",
+    plant: "拆单",
+    kind: "split",
+    plannedRate: null,
+    actualRate: 1700,
+    status: "running",
+    teardownDate: null,
+    note: "两线合计日均，不拆开再借。",
+  },
+  {
+    id: "old-3",
+    name: "老厂3线",
+    plant: "老厂",
+    kind: "old",
+    plannedRate: 1500,
+    actualRate: null,
+    status: "verbal",
+    teardownDate: null,
+    note: "只有口头数。",
+  },
+  {
+    id: "old-1",
+    name: "老厂1线",
+    plant: "老厂",
+    kind: "old",
+    plannedRate: 1600,
+    actualRate: 1620,
+    status: "running",
+    teardownDate: null,
+    note: "在产。",
+  },
+  {
+    id: "old-2",
+    name: "老厂2线",
+    plant: "老厂",
+    kind: "old",
+    plannedRate: null,
+    actualRate: null,
+    status: "teardown",
+    teardownDate: "2026-11-27",
+    note: "计划拆线日是假设，没有日均。",
+  },
+];
+
+const ORDERS = [
+  {
+    id: "A-0412",
+    customer: "客户A",
+    due: "2026-11-28",
+    lineId: "new-3",
+    remaining: 14800,
+    rate: 1420,
+    yesterdayPlan: 2400,
+    yesterdayActual: 1350,
+    source: "吊挂系统",
+    stage: "sewing",
+    fabric: "arrived",
+    cutRatio: 0.7,
+    sewnRatio: null,
+    kitShort: 0,
+    kitNote: "",
+    countGap: null,
+    countBase: null,
+    verbal: false,
+  },
+  {
+    id: "B-0377",
+    customer: "客户B",
+    due: "2026-11-25",
+    lineId: "split-b",
+    remaining: 3100,
+    rate: 1700,
+    yesterdayPlan: 1800,
+    yesterdayActual: 1760,
+    source: "系统+手记",
+    stage: null,
+    fabric: null,
+    cutRatio: null,
+    sewnRatio: null,
+    kitShort: 900,
+    kitNote: "M码缺900件",
+    countGap: null,
+    countBase: null,
+    verbal: false,
+  },
+  {
+    id: "C-0521",
+    customer: "客户C",
+    due: "2026-12-05",
+    lineId: "new-1",
+    remaining: 9600,
+    rate: 1600,
+    yesterdayPlan: 2000,
+    yesterdayActual: 1850,
+    source: "系统与手记",
+    stage: null,
+    fabric: null,
+    cutRatio: null,
+    sewnRatio: null,
+    kitShort: 0,
+    kitNote: "",
+    countGap: 180,
+    countBase: 1850,
+    verbal: false,
+  },
+  {
+    id: "A-0430",
+    customer: "客户A",
+    due: "2026-12-10",
+    lineId: "new-2",
+    remaining: 22000,
+    rate: null,
+    yesterdayPlan: 2200,
+    yesterdayActual: 0,
+    source: "设备停机",
+    stage: null,
+    fabric: null,
+    cutRatio: null,
+    sewnRatio: null,
+    kitShort: 0,
+    kitNote: "",
+    countGap: null,
+    countBase: null,
+    verbal: false,
+  },
+  {
+    id: "D-0118",
+    customer: "客户D",
+    due: "2026-12-12",
+    lineId: "old-3",
+    remaining: null,
+    rate: null,
+    yesterdayPlan: 1500,
+    yesterdayActual: null,
+    source: "口头",
+    stage: null,
+    fabric: null,
+    cutRatio: null,
+    sewnRatio: null,
+    kitShort: 0,
+    kitNote: "",
+    countGap: null,
+    countBase: null,
+    verbal: true,
+  },
+  {
+    id: "B-0390",
+    customer: "客户B",
+    due: "2026-12-15",
+    lineId: "old-1",
+    remaining: 8000,
+    rate: 1620,
+    yesterdayPlan: 1600,
+    yesterdayActual: 1640,
+    source: "系统+手记",
+    stage: null,
+    fabric: null,
+    cutRatio: null,
+    sewnRatio: null,
+    kitShort: 0,
+    kitNote: "",
+    countGap: null,
+    countBase: null,
+    verbal: false,
+  },
+];
+
+const STAGES = [
+  { id: "", label: "未知（底账没有）" },
+  { id: "uncut", label: "未开裁" },
+  { id: "cut", label: "已裁" },
+  { id: "sewing", label: "缝制中" },
+  { id: "ship", label: "待出货" },
+];
+
+const CHANGE_TYPES = [
+  { id: "add", label: "加单" },
+  { id: "cut", label: "砍单" },
+  { id: "ratio", label: "改配比" },
+  { id: "delay", label: "延期提货" },
+];
+
+const STRATEGIES = [
+  { id: "full", label: "全接" },
+  { id: "partial", label: "部分接" },
+  { id: "reschedule", label: "换交期" },
+];
+
+const STAGE_LABEL = Object.fromEntries(STAGES.map((s) => [s.id, s.label]));
+const TYPE_LABEL = Object.fromEntries(CHANGE_TYPES.map((s) => [s.id, s.label]));
+const STRATEGY_LABEL = Object.fromEntries(STRATEGIES.map((s) => [s.id, s.label]));
+
+const LINE_STATUS_LABEL = {
+  running: "在产",
+  down: "停机",
+  verbal: "口头",
+  teardown: "计划拆线",
+};
+
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.freeze(value);
+  for (const item of Object.values(value)) deepFreeze(item);
+  return value;
+}
+
+deepFreeze(LINES);
+deepFreeze(ORDERS);
+deepFreeze(STAGES);
+deepFreeze(CHANGE_TYPES);
+deepFreeze(STRATEGIES);
+
+// 固定场景资料：示例假设，非企业订单；试算结果由 calc.js 派生。
+const SCENE = Object.freeze({
+  id: "change-add-a0412",
+  version: "2026-11-17-v1",
+  baselineDate: "2026-11-20",
+  orderId: "A-0412",
+  additionalPieces: 6000,
+  requestedDate: "2026-12-02",
+  evidenceDate: "2026-08-31",
+  evidenceUrl: "https://www.fastretailing.com/jp/sustainability/labor/pdf/FRGarmentProcessingFtyList.pdf",
+  docUrl: "https://github.com/FionaHong-Lab/ai-agent-delivery-casebook/blob/main/case-07-shenzhou-capacity-shift-pilot.md#scene-change-add-a0412",
+  disclaimer: "虚构示例：订单、数字和情节均为演示编造，不代表品牌真实订单，也不表示与申洲或任何品牌存在商业合作。",
+});
+
+/**
+ * 订单变更与交期风险的确定性计算。
+ *
+ * 示例日固定为 2026-11-20。完工 = 示例日 + 向上取整(剩余 ÷ 近3日日均) 个日历日。
+ * 不读电脑当天日期，不跳过周日——示例底账就是按日历日对上的。
+ * 计划日产只作对照，不代入。日均缺失或为 0 时，完工写未知。
+ * 套用始终从底账重算，不会把同一次变更叠两次。
+ */
+
+function addCalendarDays(iso, days) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getUTCDate()).padStart(2, "0");
+  return `${dt.getUTCFullYear()}-${mm}-${dd}`;
+}
+
+function calendarDaysBetween(fromIso, toIso) {
+  const a = Date.parse(`${fromIso}T00:00:00Z`);
+  const b = Date.parse(`${toIso}T00:00:00Z`);
+  return Math.round((b - a) / 86400000);
+}
+
+function isValidISODate(iso) {
+  if (typeof iso !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+function formatInt(n) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  const sign = n < 0 ? "-" : "";
+  const body = Math.abs(Math.trunc(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return sign + body;
+}
+
+function formatMD(iso) {
+  if (!iso) return "—";
+  const [, m, d] = iso.split("-");
+  return `${Number(m)}/${d}`;
+}
+
+function getLine(id) {
+  return LINES.find((line) => line.id === id) || null;
+}
+
+function getOrder(id) {
+  return ORDERS.find((order) => order.id === id) || null;
+}
+
+function customers() {
+  return [...new Set(ORDERS.map((order) => order.customer))];
+}
+
+function ordersForCustomer(customer) {
+  return ORDERS.filter((order) => order.customer === customer);
+}
+
+function parseDigits(raw, { allowEmpty, label, max, zeroOk = true }) {
+  if (raw == null || String(raw).trim() === "") {
+    if (allowEmpty) return { ok: true, value: null };
+    return { ok: false, message: `请填写${label}` };
+  }
+  const text = String(raw).trim();
+  if (!/^\d+$/.test(text)) {
+    return { ok: false, message: `${label}要填 0 或正整数，不能是负数、小数或文字` };
+  }
+  const value = Number(text);
+  if (!Number.isSafeInteger(value)) {
+    return { ok: false, message: `${label}太大，算不了` };
+  }
+  if (!zeroOk && value === 0) {
+    return { ok: false, message: `${label}不能为 0` };
+  }
+  if (value > max) {
+    return { ok: false, message: `${label}超过示例能演示的上限（${formatInt(max)}）` };
+  }
+  return { ok: true, value };
+}
+
+function finishDate(remaining, rate) {
+  if (remaining == null || rate == null) {
+    return { date: null, days: null, reason: "缺剩余或日均" };
+  }
+  if (rate <= 0) {
+    return { date: null, days: null, reason: "日均为 0，不能做除法" };
+  }
+  if (remaining <= 0) {
+    return { date: ANCHOR, days: 0, reason: "剩余为 0" };
+  }
+  const days = Math.ceil(remaining / rate);
+  if (days > MAX_DAYS) {
+    return { date: null, days, reason: "换算超过 10 年，不生成日期" };
+  }
+  return { date: addCalendarDays(ANCHOR, days), days, reason: "" };
+}
+
+function applyTeardown(line, finish) {
+  if (!finish?.date || !line?.teardownDate) return finish;
+  if (finish.date > line.teardownDate) {
+    return {
+      date: null,
+      days: finish.days,
+      reason: `按日均会晚于计划拆线日 ${formatMD(line.teardownDate)}，拆线之后还有没有产量是未知`,
+    };
+  }
+  return finish;
+}
+
+function deliveryLight({ order, line, remaining, rate, finish, due }) {
+  const hasNumbers = remaining != null && rate > 0 && finish != null;
+  if (order.kitShort > 0) return "red";
+  if (hasNumbers && due && finish > due) return "red";
+  if (line.status === "down") return "yellow";
+  if (line.status === "teardown" && !hasNumbers) return "yellow";
+  if (order.countGap != null && order.countBase > 0 && order.countGap / order.countBase > GAP_RATIO) {
+    return "yellow";
+  }
+  if (!hasNumbers) return "grey";
+  if (due && finish && calendarDaysBetween(finish, due) < BUFFER_DAYS) return "yellow";
+  return "green";
+}
+
+const LIGHT_NAME = { red: "红", yellow: "黄", grey: "灰", green: "绿" };
+
+function metaLine(order) {
+  const plan = order.yesterdayPlan == null ? "—" : formatInt(order.yesterdayPlan);
+  const actual = order.yesterdayActual == null ? "—" : formatInt(order.yesterdayActual);
+  return `昨日计划/实际 ${plan}/${actual}，不参与计算。来源：${order.source}`;
+}
+
+function baseNote(order, line, finish) {
+  if ((order.verbal || line.status === "verbal") && (order.remaining == null || order.rate == null)) {
+    return "只有口头数，剩余或日均缺失，不参与完工计算。";
+  }
+  if (order.rate == null && line.status === "down") {
+    return "停机，近3日日均缺失，完工未知。不改用计划日产来推算。";
+  }
+  if (order.rate == null && line.status === "teardown") {
+    return `计划拆线日 ${formatMD(line.teardownDate)}（假设），没有日均，完工未知。`;
+  }
+  const bits = [];
+  if (!finish?.date) {
+    bits.push(finish?.reason ? `${finish.reason}。` : "完工未知。");
+  } else if (finish.date > order.due) {
+    const late = calendarDaysBetween(order.due, finish.date);
+    bits.push(`按近3日日均，完工 ${formatMD(finish.date)}，晚 ${late} 天。`);
+  } else {
+    bits.push(`完工 ${formatMD(finish.date)}，不晚于交期。`);
+  }
+  if (order.kitShort > 0) {
+    bits.push(`${order.kitNote}，齐套日未知，不能按缝纫完工日出货。`);
+  }
+  if (order.countGap != null && order.countBase > 0) {
+    const pct = Math.round((order.countGap / order.countBase) * 1000) / 10;
+    bits.push(`系统与手记差 ${formatInt(order.countGap)} 件，约占 ${formatInt(order.countBase)} 的 ${pct.toFixed(1)}%，超过 3% 的假设线。`);
+  }
+  return bits.join("");
+}
+
+function makeRow({ order, line, remaining, rate, dueIso, dueText, finish, note, changed }) {
+  const light = deliveryLight({
+    order,
+    line,
+    remaining,
+    rate,
+    finish: finish?.date || null,
+    due: dueIso,
+  });
+  return {
+    id: order.id,
+    customer: order.customer,
+    dueText,
+    dueIso,
+    lineName: line.name,
+    remainingText: remaining == null ? "—" : formatInt(remaining),
+    rateText: rate == null ? "—" : rate === 0 ? "0" : formatInt(rate),
+    finishText: finish?.date ? formatMD(finish.date) : "—",
+    finishIso: finish?.date || null,
+    light,
+    lightLabel: LIGHT_NAME[light],
+    note,
+    meta: metaLine(order),
+    changed,
+  };
+}
+
+function baselineRows() {
+  return ORDERS.map((order) => {
+    const line = getLine(order.lineId);
+    const finish = applyTeardown(line, finishDate(order.remaining, order.rate));
+    return makeRow({
+      order,
+      line,
+      remaining: order.remaining,
+      rate: order.rate,
+      dueIso: order.due,
+      dueText: formatMD(order.due),
+      finish,
+      note: baseNote(order, line, finish),
+      changed: false,
+    });
+  });
+}
+
+function effectiveQty(type, strategy, qty) {
+  if (strategy !== "partial") return qty;
+  return Math.floor(qty / 2);
+}
+
+function validate(form, lineRates) {
+  const order = getOrder(form.orderId);
+  if (!order) return { ok: false, error: { field: "orderId", message: "请选择一张示例订单" } };
+  if (!["add", "cut", "ratio", "delay"].includes(form.type)) {
+    return { ok: false, error: { field: "type", message: "请选择改单类型" } };
+  }
+  const line = getLine(form.lineId);
+  if (!line) return { ok: false, error: { field: "lineId", message: "请选择线别" } };
+  if (![...Object.keys(STAGE_LABEL)].includes(form.stage)) {
+    return { ok: false, error: { field: "stage", message: "请选择工序" } };
+  }
+
+  const qtyLabel = form.type === "delay" ? "推迟天数" : "变更数量";
+  const qtyMax = form.type === "delay" ? MAX_DELAY_DAYS : MAX_PIECES;
+  const qtyParsed = parseDigits(form.qty, { allowEmpty: false, label: qtyLabel, max: qtyMax });
+  if (!qtyParsed.ok) return { ok: false, error: { field: "qty", message: qtyParsed.message } };
+
+  const remainingParsed = parseDigits(form.remaining, {
+    allowEmpty: true,
+    label: "本单剩余",
+    max: MAX_PIECES,
+  });
+  if (!remainingParsed.ok) {
+    return { ok: false, error: { field: "remaining", message: remainingParsed.message } };
+  }
+
+  const due = form.keepDue ? order.due : form.due;
+  if (!isValidISODate(due)) {
+    return { ok: false, error: { field: "due", message: "交期不是有效日期" } };
+  }
+
+  const rates = {};
+  for (const item of LINES) {
+    const parsed = parseDigits(lineRates[item.id], {
+      allowEmpty: true,
+      label: `${item.name}的日均`,
+      max: MAX_RATE,
+    });
+    if (!parsed.ok) return { ok: false, error: { field: `rate:${item.id}`, message: parsed.message } };
+    rates[item.id] = parsed.value;
+  }
+
+  const qty = qtyParsed.value;
+  const remainingBefore = remainingParsed.value;
+  const cutQty = form.type === "cut" ? effectiveQty("cut", form.strategy || "full", qty) : 0;
+
+  if (form.type === "add" && qty > 0 && remainingBefore == null) {
+    return { ok: false, error: { field: "remaining", message: "剩余未知，没法加上变更数量。请先填写剩余，或把数量改成 0。" } };
+  }
+  if (form.type === "cut" && remainingBefore == null) {
+    return { ok: false, error: { field: "remaining", message: "剩余未知，不能判断砍完还剩多少。" } };
+  }
+  if (form.type === "cut" && cutQty > remainingBefore) {
+    return {
+      ok: false,
+      error: {
+        field: "qty",
+        message: `砍单量 ${formatInt(cutQty)} 件超过剩余 ${formatInt(remainingBefore)} 件。没有改成 0，也没有照减。`,
+      },
+    };
+  }
+  if (form.type === "ratio" && remainingBefore != null && qty > remainingBefore) {
+    return {
+      ok: false,
+      error: { field: "qty", message: `改配 ${formatInt(qty)} 件，大于剩余 ${formatInt(remainingBefore)} 件。` },
+    };
+  }
+  if (form.type === "add" && remainingBefore != null && remainingBefore + qty > MAX_PIECES) {
+    return { ok: false, error: { field: "qty", message: `加上之后超过 ${formatInt(MAX_PIECES)} 件，这页不演示这么大的数。` } };
+  }
+
+  return {
+    ok: true,
+    order,
+    line,
+    type: form.type,
+    stage: form.stage,
+    qty,
+    remainingBefore,
+    due,
+    keepDue: !!form.keepDue,
+    rates,
+  };
+}
+
+function horizonDays(due) {
+  return Math.max(0, calendarDaysBetween(ANCHOR, due));
+}
+
+function slackForNewPieces(remainingBefore, rate, due) {
+  if (remainingBefore == null || !(rate > 0) || !due) return null;
+  return Math.max(0, horizonDays(due) * rate - remainingBefore);
+}
+
+function borrowNeed(parsed, strategy) {
+  const { type, qty, remainingBefore, due, rates, line } = parsed;
+  const rate = rates[line.id];
+  if (type !== "add") return { known: true, pieces: 0, secondDue: null };
+  if (strategy === "reschedule") return { known: true, pieces: 0, secondDue: null };
+  if (!(rate > 0) || remainingBefore == null) {
+    return { known: false, pieces: null, secondDue: strategy === "partial" ? addCalendarDays(due, DEFERRAL_DAYS) : null };
+  }
+  const slack = (day) => slackForNewPieces(remainingBefore, rate, day);
+  if (strategy === "partial") {
+    const first = Math.floor(qty / 2);
+    const secondDue = addCalendarDays(due, DEFERRAL_DAYS);
+    const needFirst = Math.max(0, first - slack(due));
+    const needLater = Math.max(0, qty - slack(secondDue));
+    return { known: true, pieces: Math.max(needFirst, needLater), secondDue };
+  }
+  return { known: true, pieces: Math.max(0, qty - slack(due)), secondDue: null };
+}
+
+function donorCandidates(parsed, targetId) {
+  const donors = [];
+  const skipped = [];
+  for (const order of ORDERS) {
+    if (order.id === targetId) continue;
+    const line = getLine(order.lineId);
+    const rate = parsed.rates[order.lineId];
+    const eligibleKind = line.kind === "new" || line.kind === "old";
+    if (!eligibleKind || line.status !== "running" || !(rate > 0) || order.remaining == null || order.kitShort > 0) {
+      skipped.push({
+        orderId: order.id,
+        reason: skipReason(order, line, rate),
+      });
+      continue;
+    }
+    const solo = applyTeardown(line, finishDate(order.remaining, rate));
+    if (!solo.date) {
+      skipped.push({ orderId: order.id, reason: solo.reason || "完工未知，不拿来出借" });
+      continue;
+    }
+    const slackDays = Math.max(0, calendarDaysBetween(solo.date, order.due));
+    donors.push({
+      order,
+      line,
+      rate,
+      finishBefore: solo.date,
+      slackDays,
+      kind: line.kind,
+    });
+  }
+  return { donors, skipped };
+}
+
+function skipReason(order, line, rate) {
+  if (line.kind === "split") return "拆单合计日均不拿来出借";
+  if (order.kitShort > 0) return "配套不齐，不拿它的产量去填别的缺口";
+  if (line.status === "down") return "停机，日均未知，不编晚几天";
+  if (line.status === "verbal" || order.verbal) return "只有口头数，不参与计算";
+  if (line.status === "teardown") return "这条线没有可借用的日均";
+  if (!(rate > 0) || order.remaining == null) return "日均或剩余缺失，不编天数";
+  return "不参与借用";
+}
+
+function allocateBorrow(pieces, donors) {
+  const taken = new Map();
+  let left = pieces;
+  const phases = [donors.filter((d) => d.kind === "new"), donors.filter((d) => d.kind === "old")];
+  for (const group of phases) {
+    const sorted = [...group].sort((a, b) => {
+      if (b.slackDays !== a.slackDays) return b.slackDays - a.slackDays;
+      if (a.order.due !== b.order.due) return a.order.due < b.order.due ? 1 : -1;
+      return a.order.id < b.order.id ? -1 : 1;
+    });
+    for (const donor of sorted) {
+      if (left <= 0) break;
+      const free = donor.slackDays * donor.rate;
+      if (free <= 0) continue;
+      const take = Math.min(left, free);
+      taken.set(donor.order.id, take);
+      left -= take;
+    }
+  }
+  return { taken, unmet: left };
+}
+
+function sequenceLine(parsed, strategy, remainingAfter, askedDue) {
+  const { order: target, line, rates } = parsed;
+  const rate = rates[line.id];
+  const members = ORDERS.filter((item) => (item.id === target.id ? line.id : item.lineId) === line.id).map((item) => ({
+    order: item,
+    remaining: item.id === target.id ? remainingAfter : item.remaining,
+    sortDue: item.id === target.id
+      ? (strategy === "reschedule" ? item.due : askedDue)
+      : item.due,
+  }));
+  members.sort((a, b) => {
+    if (a.sortDue !== b.sortDue) return a.sortDue < b.sortDue ? -1 : 1;
+    return a.order.id < b.order.id ? -1 : 1;
+  });
+
+  const finishes = new Map();
+  let cursor = 0;
+  let blocked = false;
+  for (const member of members) {
+    if (blocked || !(rate > 0) || member.remaining == null) {
+      blocked = true;
+      finishes.set(member.order.id, {
+        date: null,
+        days: null,
+        reason: member.remaining == null ? "剩余未知，后面的单也不接着推" : "日均无法计算，后面的单也不接着推",
+      });
+      continue;
+    }
+    if (member.remaining <= 0) {
+      finishes.set(member.order.id, { date: addCalendarDays(ANCHOR, cursor), days: 0, reason: "剩余为 0" });
+      continue;
+    }
+    const days = Math.ceil(member.remaining / rate);
+    if (cursor + days > MAX_DAYS) {
+      blocked = true;
+      finishes.set(member.order.id, { date: null, days, reason: "换算超过 10 年，不生成日期" });
+      continue;
+    }
+    const solo = { date: addCalendarDays(ANCHOR, cursor + days), days: cursor + days, reason: "" };
+    finishes.set(member.order.id, applyTeardown(line, solo));
+    if (!finishes.get(member.order.id).date) blocked = true;
+    else cursor += days;
+  }
+  return { shared: members.length > 1, members, finishes, rate };
+}
+
+function costModel(parsed, strategy, dayDelta) {
+  const { order, type, stage, qty } = parsed;
+  const sameStage = stage !== "" && stage === order.stage;
+  const rows = [];
+
+  if (stage === "uncut") {
+    rows.push(cost("面料", "按所选工序，还没开裁", "尚未发生", "不沿用底账里其他工序的到料记录。"));
+  } else if (sameStage && order.fabric === "arrived") {
+    rows.push(cost("面料", "已到货（示例底账）", "已发生", "能否转用要人确认。已发生不是损失，也不是客户应付。"));
+  } else if (sameStage && order.fabric === "none") {
+    rows.push(cost("面料", "未到货（示例底账）", "尚未发生", "还没到的料，这次可以不发生。"));
+  } else {
+    rows.push(cost("面料", "未知", "未知", "没有和当前工序对得上的到料记录，不推测。"));
+  }
+
+  if (stage === "uncut") {
+    rows.push(cost("裁剪", "未开始", "尚未发生", "所选工序是未开裁，不沿用已裁比例。"));
+  } else if ((stage === "cut" || stage === "sewing") && sameStage && order.cutRatio != null) {
+    const pct = Math.round(order.cutRatio * 100);
+    rows.push(cost("裁剪", `约 ${pct}% 已裁（示例）`, "已发生", "不一定还能改用。不把这个比例乘成损失。"));
+  } else {
+    rows.push(cost("裁剪", "未知", "未知", "没有与当前工序一致的裁剪完成度，不把别的数字借过来。"));
+  }
+
+  if (stage === "uncut" || stage === "cut") {
+    rows.push(cost("缝制", "未开始", "尚未发生", "这个工序之前，缝制的工还没发生。"));
+  } else if (stage === "sewing" && sameStage && order.sewnRatio == null) {
+    rows.push(cost("缝制", "进行中，已缝件数未知", "部分已发生", "不知道已经缝了多少，不估算件数。"));
+  } else if (stage === "sewing" && sameStage && order.sewnRatio != null) {
+    rows.push(cost("缝制", `约 ${Math.round(order.sewnRatio * 100)}% 已缝（示例）`, "部分已发生", "已缝的已经发生，没缝的还可以不做。"));
+  } else {
+    rows.push(cost("缝制", "未知", "未知", "没有已缝件数，不写成已经做完。"));
+  }
+
+  const acted = strategy === "partial" ? Math.floor(qty / 2) : qty;
+  if (type === "add") {
+    rows.push(cost(
+      `加量 ${formatInt(qty)} 件的料和工`,
+      qty === 0 ? "没有加量" : "还没投入",
+      "尚未发生",
+      qty === 0 ? "数量是 0，没有新增的料和工。" : "不全接就可以不发生。",
+    ));
+  } else if (type === "cut") {
+    const pending = rows.some((row) => row.bucket === "已发生" || row.bucket === "部分已发生");
+    rows.push(cost(
+      `砍掉 ${formatInt(acted)} 件`,
+      pending ? "已做的部分是否落在这些件里，未知" : "还没做的部分可以不做",
+      pending ? "待确认" : "尚未发生",
+      "不按已裁比例乘出报废件数，也不写成一笔损失。",
+    ));
+  } else if (type === "ratio") {
+    if (stage === "uncut") {
+      rows.push(cost(`改配 ${formatInt(acted)} 件`, "还没开裁", "尚未发生", "总数不变。还没裁，不产生已裁报废。"));
+    } else if (order.cutRatio != null && sameStage && stage !== "uncut") {
+      rows.push(cost(`改配 ${formatInt(acted)} 件`, "已裁的老配比还在", "待确认", "能否改用要人确认。总数不变，不记成损失。"));
+    } else {
+      rows.push(cost(`改配 ${formatInt(acted)} 件`, "已裁了多少未知", "未知", "总数不变。没有完成度，不判断报废。"));
+    }
+  } else if (stage === "ship") {
+    rows.push(cost(`提货推迟 ${formatInt(acted)} 天`, "成品待出", "待确认", "占仓和回款会后移。不折算金额。"));
+  } else {
+    rows.push(cost(`提货推迟 ${formatInt(acted)} 天`, "货还没到待出货", "未知", "生产负荷不变。占仓天数未知，不把推迟天数写成已经占仓。"));
+  }
+
+  const incurredNames = rows.filter((row) => row.bucket === "已发生" || row.bucket === "部分已发生").map((row) => row.node);
+  const incurredSummary = incurredNames.length
+    ? `已发生：${incurredNames.join("、")}。这不是损失，也不是客户要付的钱。`
+    : "已发生：这次没有能确认的已投入。";
+
+  let recoverableSummary = "可挽回：没有新增、也没有砍掉可以单独收回的数量。";
+  if (type === "add" && qty > 0) recoverableSummary = `可挽回：加量 ${formatInt(qty)} 件的料和工还没发生，不接就可以不做。已经在做的部分能否转用，仍待确认。`;
+  if (type === "cut" && acted > 0) recoverableSummary = `可挽回：砍掉之后不再做的部分可以不做。已经投入的能否转用要人确认，不能写成已经挽回。`;
+  if (type === "ratio") recoverableSummary = "可挽回：总件数不变。已裁老配比能不能改用，要人确认。";
+  if (type === "delay") recoverableSummary = "可挽回：没有新增制作，生产上的料和工不因推迟提货而多出来。";
+
+  let incrementalSummary = "新增占用：没有。";
+  if (type === "add") {
+    incrementalSummary = dayDelta == null
+      ? `新增占用：${formatInt(qty)} 件。本线会多几天，要等日均和剩余都有了才能算。`
+      : `新增占用：${formatInt(qty)} 件。只在本线做的话，完工比变更前多 ${dayDelta} 个日历日（向上取整之后的差，不是简单除法）。`;
+  } else if (type === "cut") {
+    incrementalSummary = `新增占用：没有。少做 ${formatInt(acted)} 件。腾出的天数不自动改派给别的单。`;
+  } else if (type === "ratio") {
+    incrementalSummary = "新增占用：0 件。总数不变，完工公式不变。";
+  } else {
+    incrementalSummary = `新增占用：生产件数不变。提货推迟 ${formatInt(acted)} 天。`;
+  }
+
+  return { rows, incurredSummary, recoverableSummary, incrementalSummary };
+}
+
+function cost(node, state, bucket, detail) {
+  return { node, state, bucket, detail };
+}
+
+function capacityView(rate, due, loadPieces, loadLabel) {
+  if (!(rate > 0) || !due || loadPieces == null) {
+    return { known: false, level: "unknown", levelText: "无法计算", days: null, canMake: null, loadPieces, loadLabel, width: 0 };
+  }
+  const days = horizonDays(due);
+  const canMake = days * rate;
+  let level = "ok";
+  if (loadPieces > canMake) level = "over";
+  else if (canMake - loadPieces < rate) level = "near";
+  const levelText = {
+    over: "已超过这段时间能做的件数",
+    near: "接近这段时间能做完的件数",
+    ok: "这段时间做得下",
+  }[level];
+  const width = canMake <= 0 ? (loadPieces > 0 ? 100 : 0) : Math.min(100, Math.round((loadPieces / canMake) * 100));
+  return { known: true, level, levelText, days, canMake, loadPieces, loadLabel, width };
+}
+
+function reviewersFor(parsed, strategy, flags) {
+  const { stage, due } = parsed;
+  const list = [];
+  const far = horizonDays(due) > REVIEW_HORIZON_DAYS;
+  if (stage === "") {
+    list.push({ role: "跟单主管", reason: "工序未知，按可能已经开裁来找人，避免漏审。" });
+    list.push({ role: "计划主管", reason: "工序未知，仍要一起看会不会挤到别的单。" });
+  } else if (stage === "uncut" && far && !flags.needsPlantOwner) {
+    list.push({ role: "跟单员", reason: `未开裁，且承诺日在示例日 ${REVIEW_HORIZON_DAYS} 天以外（假设）。快评之后由人决定。` });
+  } else if (stage === "uncut" && far) {
+    list.push({ role: "跟单员", reason: `未开裁，且承诺日在 ${REVIEW_HORIZON_DAYS} 天以外（假设）。` });
+  } else {
+    list.push({
+      role: "跟单主管",
+      reason: stage === "uncut" ? "未开裁，但承诺日已在 7 天以内（假设）。" : "已开裁或已进入后道，要和计划一起看（假设）。",
+    });
+    list.push({ role: "计划主管", reason: "确认本线缺口，以及被借走缓冲的是哪几张单。" });
+  }
+  if (flags.needsPlantOwner) {
+    list.push({ role: "生产负责人", reason: `${flags.plantReason}按「新线接住，老线才停」扩大审阅（假设）。` });
+  }
+  return list;
+}
+
+function plantFlags(parsed, strategy, borrow, allocations, shared) {
+  const { line, type, qty } = parsed;
+  const reasons = [];
+  if (allocations.some((item) => item.kind === "new" && item.pieces > 0)) reasons.push("借用了新线的缓冲。");
+  if (shared.shared && line.kind === "new") reasons.push("这张单排进了已有订单的新线。");
+  if (line.status === "teardown") reasons.push("所选的线已有拆线计划。");
+  if (borrow.known && borrow.unmet > 0) reasons.push("还有件数没有可计算的去处。");
+  if (borrow.known === false && type === "add" && qty > 0 && strategy !== "reschedule") {
+    reasons.push("借多少件算不清，看不准会不会碰到新线或拆线。");
+  }
+  const delaysTeardown = line.status === "teardown" || (borrow.known && borrow.unmet > 0);
+  return {
+    occupiesNewLine: reasons.some((item) => item.includes("新线")),
+    delaysTeardown: delaysTeardown ? true : (borrow.known === false ? "unknown" : false),
+    needsPlantOwner: reasons.length > 0,
+    plantReason: reasons.join(""),
+  };
+}
+
+function promiseFor(parsed, strategy, ownFinish) {
+  const { type, qty, due } = parsed;
+  const acted = effectiveQty(type, strategy, qty);
+  if (strategy === "reschedule") {
+    if (!ownFinish?.date) {
+      return { promiseDue: null, secondDue: null, firstQty: null, secondQty: null, acted, delayDays: type === "delay" ? qty : 0 };
+    }
+    const promiseDue = ownFinish.date > due ? ownFinish.date : due;
+    const delayDays = type === "delay" ? qty : 0;
+    return { promiseDue, secondDue: null, firstQty: null, secondQty: null, acted, delayDays };
+  }
+  if (strategy === "partial" && type === "add") {
+    return {
+      promiseDue: due,
+      secondDue: addCalendarDays(due, DEFERRAL_DAYS),
+      firstQty: Math.floor(qty / 2),
+      secondQty: qty - Math.floor(qty / 2),
+      acted: qty,
+      delayDays: 0,
+    };
+  }
+  return {
+    promiseDue: due,
+    secondDue: null,
+    firstQty: null,
+    secondQty: null,
+    acted,
+    delayDays: type === "delay" ? acted : 0,
+  };
+}
+
+function choiceCopy(parsed, strategy, ownFinish, borrow, promise) {
+  const { type, qty } = parsed;
+  const finishText = ownFinish?.date ? formatMD(ownFinish.date) : "未知";
+  if (strategy === "reschedule") {
+    return {
+      title: promise.promiseDue ? `换交期到 ${formatMD(promise.promiseDue)}` : "换交期，但完工未知",
+      detail: promise.promiseDue
+        ? `承诺改到本线做完的那天（不早于客户提出的日期）。不向其他线借产量。本线完工 ${finishText}。`
+        : "本线完工未知，给不出新的承诺日，也不假借别的线。",
+    };
+  }
+  if (type === "add" && strategy === "partial") {
+    return {
+      title: `部分接：${formatInt(promise.firstQty)} 件仍按 ${formatMD(promise.promiseDue)}，其余 ${formatInt(promise.secondQty)} 件到 ${formatMD(promise.secondDue)}`,
+      detail: borrow.known
+        ? `一半向下取整，另一半顺延 ${DEFERRAL_DAYS} 天（假设）。为守住前一个日期，要借 ${formatInt(borrow.pieces)} 件。`
+        : "日均或剩余不够，借多少件是未知。",
+    };
+  }
+  if (type === "cut" && strategy === "partial") {
+    return {
+      title: `部分砍 ${formatInt(promise.acted)} 件`,
+      detail: "只砍填写数量的一半，另一半仍留在这张单上。不自动把腾出的天数派给别的单。",
+    };
+  }
+  if (type === "ratio" && strategy === "partial") {
+    return {
+      title: `部分改配 ${formatInt(promise.acted)} 件`,
+      detail: "只把一半件数视为改了配比。总件数不变，完工公式不变。",
+    };
+  }
+  if (type === "delay" && strategy === "partial") {
+    return {
+      title: `部分推迟 ${formatInt(promise.acted)} 天`,
+      detail: "只登记一半的推迟天数。生产剩余和本线完工不变。",
+    };
+  }
+  if (type === "delay") {
+    return {
+      title: `全接推迟 ${formatInt(qty)} 天`,
+      detail: "生产剩余不变。提货日往后推，不向其他线借产量。",
+    };
+  }
+  if (type === "cut") {
+    return {
+      title: `全砍 ${formatInt(qty)} 件`,
+      detail: `砍完之后本线完工 ${finishText}。不把腾出的产能自动加给别的单。`,
+    };
+  }
+  if (type === "ratio") {
+    return {
+      title: `全改配 ${formatInt(qty)} 件`,
+      detail: "总件数不变，本线完工不变。已裁的老配比是否还能用，要人确认。",
+    };
+  }
+  const borrowText = !borrow.known
+    ? "要守住这个日期需要借多少，未知。"
+    : borrow.pieces === 0
+      ? "不用借其他线的缓冲。"
+      : `要守住这个日期，需借 ${formatInt(borrow.pieces)} 件缓冲。`;
+  return {
+    title: `全接，承诺 ${formatMD(parsed.due)}`,
+    detail: `只在本线做完是 ${finishText}。${borrowText}`,
+  };
+}
+
+function buildHeadline(parsed, strategy, ownFinish, borrow, promise, allocations) {
+  const finishText = ownFinish?.date ? formatMD(ownFinish.date) : "未知";
+  if (parsed.type === "delay") {
+    return `延期提货 ${formatInt(promise.delayDays)} 天。本线完工仍是 ${finishText}，生产件数不变。`;
+  }
+  if (parsed.type === "ratio") {
+    return `改配 ${formatInt(promise.acted)} 件，总件数不变。本线完工 ${finishText}。`;
+  }
+  if (parsed.type === "cut") {
+    return `砍 ${formatInt(promise.acted)} 件后剩余 ${formatInt(parsed.remainingBefore - promise.acted)} 件，本线完工 ${finishText}。`;
+  }
+  let text = `加 ${formatInt(parsed.qty)} 件后，只在本线做完是 ${finishText}。`;
+  if (strategy === "reschedule") {
+    text += promise.promiseDue ? `承诺改到 ${formatMD(promise.promiseDue)}，不借其他线。` : "完工未知，给不出新承诺日。";
+    return text;
+  }
+  if (!borrow.known) {
+    text += "要守住承诺需要借多少件，现在未知。";
+    return text;
+  }
+  if (borrow.pieces === 0) {
+    text += "交期前的空闲够用，不用借其他线。";
+    return text;
+  }
+  const who = allocations.map((item) => `${item.orderId} ${formatInt(item.pieces)} 件`).join("、");
+  text += who ? `要守住承诺，需借 ${formatInt(borrow.pieces)} 件（${who}）。` : `要守住承诺，需借 ${formatInt(borrow.pieces)} 件。`;
+  if (borrow.unmet > 0) text += `还有 ${formatInt(borrow.unmet)} 件没有可计算的去处。`;
+  return text;
+}
+
+function buildTrace(parsed, strategy, ownFinish, sampleFinish, borrow, allocations, promise, shared) {
+  const rate = parsed.rates[parsed.line.id];
+  const trace = [];
+  trace.push(`示例日是 ${ANCHOR}。客户提出的日期是 ${parsed.due}，相距 ${calendarDaysBetween(ANCHOR, parsed.due)} 个日历日。不跳过周日，也不用你打开页面的当天。`);
+  if (shared.shared) {
+    trace.push(`${parsed.line.name}上还有别的单。按底账交期从早到晚排队，日均 ${rate == null ? "未知" : `${formatInt(rate)} 件/日`}。同一条线不重复再向外面借一次。`);
+    for (const member of shared.members) {
+      const finish = shared.finishes.get(member.order.id);
+      trace.push(`${member.order.id} 排在这一条上，完工 ${finish?.date ? formatMD(finish.date) : "未知"}。`);
+    }
+    return trace;
+  }
+  const rateText = rate == null ? "未知" : rate === 0 ? "0，不能做除法" : `${formatInt(rate)} 件/日`;
+  const planned = parsed.line.plannedRate == null ? "没有计划日产" : `计划日产 ${formatInt(parsed.line.plannedRate)} 件/日不参与计算`;
+  trace.push(`${parsed.line.name}近3日日均 ${rateText}。${planned}。`);
+  if (parsed.due && rate > 0) {
+    const days = horizonDays(parsed.due);
+    trace.push(`从示例日到承诺日有 ${days} 个日历日，可做 ${formatInt(days * rate)} 件。`);
+  }
+  trace.push(`变更前剩余 ${parsed.remainingBefore == null ? "未知" : `${formatInt(parsed.remainingBefore)} 件`}，底账完工 ${sampleFinish?.date ? formatMD(sampleFinish.date) : "未知"}。`);
+  if (parsed.type === "add") {
+    trace.push(`加 ${formatInt(parsed.qty)} 件后剩余 ${parsed.remainingBefore == null ? "未知" : `${formatInt(parsed.remainingBefore + parsed.qty)} 件`}。本线完工 ${ownFinish?.date ? `${formatMD(ownFinish.date)}（向上取整 ${ownFinish.days} 天）` : "未知"}。`);
+  } else if (parsed.type === "cut") {
+    trace.push(`这次实际砍 ${formatInt(promise.acted)} 件。本线完工 ${ownFinish?.date ? formatMD(ownFinish.date) : "未知"}。`);
+  } else if (parsed.type === "ratio") {
+    trace.push("改配比不改变剩余件数，完工公式也不变。");
+  } else {
+    trace.push("延期提货不改变剩余件数，本线完工不变。");
+  }
+  if (strategy === "reschedule") {
+    trace.push(promise.promiseDue
+      ? `换交期把承诺改到 ${promise.promiseDue}，不向其他线借产量。`
+      : "完工未知，换交期给不出新日期。");
+    return trace;
+  }
+  if (parsed.type !== "add") {
+    trace.push("这次不增加件数，所以不向其他线借缓冲。");
+    return trace;
+  }
+  if (!borrow.known) {
+    trace.push("日均或剩余缺失，借多少件是未知，不摊到某一张单上，也不写晚几天。");
+    return trace;
+  }
+  if (borrow.pieces === 0) {
+    trace.push("新增件数能放进承诺日前的空闲里，其他订单的完工保持底账。");
+    return trace;
+  }
+  trace.push(`承诺日前没有足够空闲，要另借 ${formatInt(borrow.pieces)} 件，才守得住这个日期。先借新厂里缓冲更宽的线，新厂不够才用老厂。`);
+  for (const item of allocations) {
+    trace.push(`${item.orderId} 借出 ${formatInt(item.pieces)} 件，完工从 ${formatMD(item.finishBefore)} 移到 ${formatMD(item.finishAfter)}，不晚于它自己的交期。`);
+  }
+  if (borrow.unmet > 0) {
+    trace.push(`还有 ${formatInt(borrow.unmet)} 件借不到。停机线、口头数和没有日均的拆线，都不编天数。`);
+  } else {
+    trace.push("停机线、口头数和老厂2线的拆线日，这次都没有拿来凑数。");
+  }
+  return trace;
+}
+
+function whereText(parsed) {
+  const { order, line, stage } = parsed;
+  const stageName = stage === "" ? "工序未知" : STAGE_LABEL[stage];
+  if (stage === "sewing" && stage === order.stage) {
+    const cut = order.cutRatio == null ? "裁剪完成度未知" : `已裁约 ${Math.round(order.cutRatio * 100)}%`;
+    const fabric = order.fabric === "arrived" ? "面料已到" : "面料到料未知";
+    return `${stageName}，${line.name}。${fabric}，${cut}，已缝件数未知。`;
+  }
+  if (stage !== "" && order.stage && stage !== order.stage) {
+    return `底账工序是${STAGE_LABEL[order.stage] || "未知"}，这次按「${stageName}」重算投入。线别：${line.name}。`;
+  }
+  if (stage === "") return `底账没有工序。线别：${line.name}。投入不推测。`;
+  return `${stageName}，${line.name}。`;
+}
+
+function computeParsed(parsed, strategy) {
+  const { order, line, type, qty, remainingBefore, due, rates, stage } = parsed;
+  const rate = rates[line.id];
+  let remainingAfter = remainingBefore;
+  const actedPreview = effectiveQty(type, strategy, qty);
+  if (type === "add" && remainingBefore != null) remainingAfter = remainingBefore + qty;
+  if (type === "cut") remainingAfter = remainingBefore - actedPreview;
+
+  const sampleFinish = applyTeardown(getLine(order.lineId), finishDate(order.remaining, order.rate));
+  const shared = sequenceLine(parsed, strategy, remainingAfter, due);
+  let ownFinish = shared.shared
+    ? shared.finishes.get(order.id)
+    : applyTeardown(line, finishDate(remainingAfter, rate));
+
+  const beforeAtRate = applyTeardown(line, finishDate(remainingBefore, rate));
+  const dayDelta = !shared.shared && ownFinish?.date && beforeAtRate?.date && beforeAtRate.days != null && ownFinish.days != null
+    ? ownFinish.days - beforeAtRate.days
+    : null;
+
+  let borrow = { known: true, pieces: 0, unmet: 0, secondDue: null };
+  let allocations = [];
+  let skipped = [];
+  if (!shared.shared) {
+    const need = borrowNeed({ ...parsed, strategy }, strategy);
+    borrow = { known: need.known, pieces: need.pieces, unmet: 0, secondDue: need.secondDue };
+    if (need.known && need.pieces > 0) {
+      const pool = donorCandidates(parsed, order.id);
+      skipped = pool.skipped;
+      const allocated = allocateBorrow(need.pieces, pool.donors);
+      borrow.unmet = allocated.unmet;
+      allocations = pool.donors.filter((donor) => allocated.taken.has(donor.order.id)).map((donor) => {
+        const pieces = allocated.taken.get(donor.order.id);
+        const slip = Math.ceil(pieces / donor.rate);
+        return {
+          orderId: donor.order.id,
+          pieces,
+          finishBefore: donor.finishBefore,
+          finishAfter: addCalendarDays(donor.finishBefore, slip),
+          slip,
+          kind: donor.kind,
+          slackDays: donor.slackDays,
+        };
+      });
+    } else if (!need.known) {
+      skipped = donorCandidates(parsed, order.id).skipped;
+      borrow.unmet = null;
+    }
+  }
+
+  const promise = promiseFor(parsed, strategy, ownFinish);
+  if (type === "delay") {
+    promise.pickupDate = promise.promiseDue ? addCalendarDays(promise.promiseDue, promise.delayDays) : null;
+    promise.warehouseDays = stage === "ship" ? promise.delayDays : null;
+  } else {
+    promise.pickupDate = null;
+    promise.warehouseDays = null;
+  }
+
+  const flags = plantFlags(parsed, strategy, borrow, allocations, shared);
+  const cost = costModel(parsed, strategy, dayDelta);
+  const choice = choiceCopy(parsed, strategy, ownFinish, borrow, promise);
+  const loadPieces = type === "add" && strategy === "partial"
+    ? (remainingBefore == null ? null : remainingBefore + (promise.firstQty || 0))
+    : remainingAfter;
+  const loadLabel = type === "add" && strategy === "partial" ? "原承诺日前要完成的件数" : "变更后剩余";
+  const capacityDue = strategy === "reschedule" ? promise.promiseDue : due;
+  const capacity = capacityView(rate, capacityDue, loadPieces, loadLabel);
+
+  const allocationById = new Map(allocations.map((item) => [item.orderId, item]));
+  const rowsAfter = ORDERS.map((item) => {
+    const onLine = item.id === order.id ? line : getLine(item.lineId);
+    const itemRate = rates[onLine.id];
+    let itemRemaining = item.remaining;
+    let dueIso = item.due;
+    let dueText = formatMD(item.due);
+    let finish = applyTeardown(onLine, finishDate(item.remaining, itemRate));
+    let extra = "";
+    let changed = false;
+
+    if (shared.shared && shared.finishes.has(item.id)) {
+      finish = shared.finishes.get(item.id);
+      if (item.id === order.id) {
+        itemRemaining = remainingAfter;
+        dueIso = promise.promiseDue || item.due;
+        dueText = dueLabel(promise, item.due);
+      }
+      if (item.id !== order.id) {
+        extra = `与 ${order.id} 同线，按交期排队。`;
+      }
+    } else if (item.id === order.id) {
+      itemRemaining = remainingAfter;
+      finish = ownFinish;
+      dueIso = promise.promiseDue || item.due;
+      dueText = dueLabel(promise, item.due);
+      extra = targetExtra(parsed, strategy, promise, ownFinish);
+    } else if (allocationById.has(item.id)) {
+      const allocation = allocationById.get(item.id);
+      finish = { date: allocation.finishAfter, days: null, reason: "" };
+      extra = `若要守住本次承诺，借出 ${formatInt(allocation.pieces)} 件缓冲，完工从 ${formatMD(allocation.finishBefore)} 移到 ${formatMD(allocation.finishAfter)}。`;
+    }
+
+    const sample = baselineRows().find((row) => row.id === item.id);
+    if (item.id === order.id || allocationById.has(item.id) || finish?.date !== sample.finishIso || dueText !== sample.dueText || onLine.name !== sample.lineName) {
+      changed = item.id === order.id || allocationById.has(item.id) || finish?.date !== sample.finishIso || dueText !== sample.dueText || onLine.name !== sample.lineName;
+    }
+    if (item.id === order.id && (type === "delay" || type === "ratio") && qty > 0) changed = true;
+
+    const noteCore = item.id === order.id
+      ? targetNote(parsed, finish, promise, strategy)
+      : baseNote(item, onLine, finish?.date ? { date: finish.date } : finish);
+    return makeRow({
+      order: item,
+      line: onLine,
+      remaining: item.id === order.id ? itemRemaining : item.remaining,
+      rate: item.id === order.id ? rate : itemRate,
+      dueIso,
+      dueText,
+      finish,
+      note: [noteCore, extra].filter(Boolean).join(""),
+      changed,
+    });
+  });
+
+  const warnings = [];
+  if (due < ANCHOR) warnings.push("承诺日早于示例日，按已经逾期计算。示例日不改。");
+  if (rate === 0) warnings.push("日均是 0，不能做除法，完工写未知。");
+  if (ownFinish?.reason) warnings.push(ownFinish.reason);
+  if (stage !== "" && order.stage && stage !== order.stage) warnings.push("工序和底账不一致。投入按你选的工序重算，不把底账比例套过来。");
+  if (order.verbal && remainingBefore != null && rate > 0) warnings.push("底账原来是口头数。这次完工用的是你填进来的剩余和日均。");
+  if (type === "ratio" && remainingBefore == null) warnings.push("剩余未知，无法判断改配件数有没有超过本单。");
+
+  const otherImpact = otherImpactText(parsed, borrow, allocations, shared, skipped);
+  const bottleneck = capacity.known
+    ? `${line.name}。${capacity.days} 个日历日可做 ${formatInt(capacity.canMake)} 件，${capacity.loadLabel} ${formatInt(capacity.loadPieces)} 件。`
+    : `${line.name}。日均或剩余不够，瓶颈件数未知。`;
+
+  const incurredPending = cost.rows.some((row) => row.node !== `加量 ${formatInt(qty)} 件的料和工` && (row.bucket === "已发生" || row.bucket === "部分已发生" || row.bucket === "待确认"));
+  const light = reviewLight({
+    parsed,
+    strategy,
+    ownFinish,
+    borrow,
+    allocations,
+    promise,
+    incurredPending,
+    shared,
+  });
+
+  return {
+    ok: true,
+    id: evaluationId(parsed, strategy),
+    anchor: ANCHOR,
+    strategy,
+    orderId: order.id,
+    customer: order.customer,
+    type,
+    typeLabel: TYPE_LABEL[type],
+    strategyLabel: STRATEGY_LABEL[strategy],
+    qty,
+    stage,
+    lineId: line.id,
+    lineName: line.name,
+    remainingBefore,
+    remainingAfter,
+    rate,
+    askedDue: due,
+    promiseDue: promise.promiseDue,
+    secondDue: promise.secondDue,
+    firstQty: promise.firstQty,
+    secondQty: promise.secondQty,
+    delayDays: promise.delayDays,
+    pickupDate: promise.pickupDate,
+    warehouseDays: promise.warehouseDays,
+    own: {
+      finishSample: sampleFinish?.date || null,
+      finishAfter: ownFinish?.date || null,
+      daysAfter: ownFinish?.days ?? null,
+      dayDelta,
+    },
+    borrow: {
+      known: borrow.known,
+      pieces: borrow.pieces,
+      unmet: borrow.unmet,
+      allocations,
+      skipped,
+    },
+    shared: shared.shared,
+    flags,
+    cost,
+    reviewers: reviewersFor(parsed, strategy, flags),
+    capacity,
+    whereText: whereText(parsed),
+    bottleneck,
+    otherImpact,
+    headline: buildHeadline(parsed, strategy, ownFinish, borrow, promise, allocations),
+    trace: buildTrace(parsed, strategy, ownFinish, sampleFinish, borrow, allocations, promise, shared),
+    warnings,
+    light: light.light,
+    lightReason: light.reason,
+    choiceTitle: choice.title,
+    choiceDetail: choice.detail,
+    rowsBefore: baselineRows(),
+    rowsAfter,
+  };
+}
+
+function dueLabel(promise, originalDue) {
+  if (promise.secondDue) return `${formatMD(promise.promiseDue)}／${formatMD(promise.secondDue)}`;
+  if (promise.promiseDue && promise.promiseDue !== originalDue) return formatMD(promise.promiseDue);
+  return formatMD(originalDue);
+}
+
+function targetExtra(parsed, strategy, promise, ownFinish) {
+  if (parsed.type === "delay" && promise.pickupDate) {
+    const hold = promise.warehouseDays == null ? "占仓天数未知" : `待出货，占仓 ${promise.warehouseDays} 天（不折算金额）`;
+    return `提货日 ${formatMD(promise.pickupDate)}。${hold}。`;
+  }
+  if (strategy === "reschedule" && promise.promiseDue) {
+    return `承诺日改为 ${formatMD(promise.promiseDue)}。`;
+  }
+  if (ownFinish?.reason && !ownFinish.date) return "";
+  return "";
+}
+
+function targetNote(parsed, finish, promise, strategy) {
+  if (!finish?.date) return finish?.reason ? `${finish.reason}。` : "完工未知。";
+  const due = promise.promiseDue;
+  if (!due) return `本线完工 ${formatMD(finish.date)}。承诺日未知。`;
+  if (finish.date > due) {
+    return `只在本线做，完工 ${formatMD(finish.date)}，晚于承诺 ${formatMD(due)} ${calendarDaysBetween(due, finish.date)} 天。`;
+  }
+  const buffer = calendarDaysBetween(finish.date, due);
+  if (buffer < BUFFER_DAYS) return `本线完工 ${formatMD(finish.date)}，与承诺同一天或只剩不到 ${BUFFER_DAYS} 天缓冲。`;
+  return `本线完工 ${formatMD(finish.date)}，不晚于承诺 ${formatMD(due)}。`;
+}
+
+function otherImpactText(parsed, borrow, allocations, shared, skipped) {
+  if (shared.shared) {
+    const others = shared.members.filter((member) => member.order.id !== parsed.order.id)
+      .map((member) => member.order.id);
+    return others.length
+      ? `和 ${others.join("、")} 同线，按交期先后做。不再向线外借一次，避免算两遍。`
+      : "同一条线上没有别的单。";
+  }
+  if (parsed.type !== "add" || (borrow.known && borrow.pieces === 0)) {
+    return "其他订单的完工保持底账。腾出的产能不自动改派。";
+  }
+  if (!borrow.known) return "缺日均或剩余，影响不到具体订单，也不写晚几天。";
+  const bits = allocations.map((item) => `${item.orderId} 完工从 ${formatMD(item.finishBefore)} 到 ${formatMD(item.finishAfter)}`);
+  const unknown = skipped.slice(0, 3).map((item) => `${item.orderId}（${item.reason}）`);
+  let text = bits.length ? `会动到：${bits.join("；")}。` : "没有订单能借出可计算的缓冲。";
+  if (borrow.unmet > 0) text += `还有 ${formatInt(borrow.unmet)} 件没有去处。`;
+  if (unknown.length) text += `不编天数的有：${unknown.join("、")}。`;
+  return text;
+}
+
+function reviewLight({ parsed, strategy, ownFinish, borrow, allocations, promise, incurredPending, shared }) {
+  const reasons = [];
+  let light = "green";
+  const raise = (level, text) => {
+    const rank = { green: 0, yellow: 1, grey: 2, red: 3 };
+    if (rank[level] >= rank[light]) light = level;
+    reasons.push(text);
+  };
+  const deliveryUnknown = parsed.type !== "ratio" && parsed.type !== "delay" && !ownFinish?.date;
+  const othersLate = allocations.some((item) => item.finishAfter > getOrder(item.orderId).due);
+  if (othersLate) raise("red", "按这条规则，会把别的单推过它自己的交期。");
+  if (borrow.known && borrow.unmet > 0) raise("red", "要守住承诺的话，还有件数没有可计算的去处，不编造晚几天。");
+  if (incurredPending && parsed.qty > 0 && parsed.type !== "delay") {
+    raise("red", "已经有料、裁剪或配比要人确认。已投入不是损失，也不是客户应付。");
+  }
+  if (shared.shared && parsed.qty >= 0) raise("yellow", "同一条线的先后顺序变了，要看被排到后面的那张单。");
+  if (borrow.known && borrow.pieces > 0 && !othersLate) raise("yellow", "要守住承诺，会占用别的单的缓冲，但那些单还没被推过交期。");
+  if (parsed.type === "delay" && parsed.qty > 0) raise("yellow", "提货推迟要登记。这不是生产加单。");
+  if (promise.promiseDue && ownFinish?.date && strategy !== "reschedule" && ownFinish.date > promise.promiseDue && parsed.type === "add" && parsed.qty > 0) {
+    raise("yellow", "只在本线做，会晚于承诺。");
+  }
+  if (strategy === "reschedule" && promise.promiseDue && ownFinish?.date && calendarDaysBetween(ownFinish.date, promise.promiseDue) < BUFFER_DAYS) {
+    raise("yellow", `换到的日期几乎没有缓冲（少于 ${BUFFER_DAYS} 天，假设）。`);
+  }
+  if (deliveryUnknown) raise("grey", "缺日均或剩余，完工未知，不能判断会不会晚。");
+  if (parsed.qty === 0 && light === "green") reasons.push("这次数量是 0，不新增占用。");
+  if (light === "green" && reasons.length === 0) reasons.push("按当前数字，交期内做完，也不用借其他线的缓冲。");
+  const unique = [...new Set(reasons)];
+  return { light, reason: unique.join("") };
+}
+
+function evaluationId(parsed, strategy) {
+  const rates = {};
+  for (const key of Object.keys(parsed.rates).sort()) rates[key] = parsed.rates[key];
+  return JSON.stringify({
+    orderId: parsed.order.id,
+    type: parsed.type,
+    qty: parsed.qty,
+    remaining: parsed.remainingBefore,
+    due: parsed.due,
+    stage: parsed.stage,
+    lineId: parsed.line.id,
+    strategy,
+    rates,
+  });
+}
+
+function evaluate(form, strategy, lineRates) {
+  const parsed = validate({ ...form, strategy }, lineRates);
+  if (!parsed.ok) {
+    return { ok: false, id: null, error: parsed.error, rowsBefore: baselineRows(), rowsAfter: null };
+  }
+  const active = computeParsed(parsed, strategy);
+  const choices = {};
+  for (const item of ["full", "partial", "reschedule"]) {
+    const result = item === strategy ? active : computeParsed(parsed, item);
+    choices[item] = { title: result.choiceTitle, detail: result.choiceDetail };
+  }
+  active.choices = choices;
+  return active;
+}
+
+function defaultForm() {
+  const order = getOrder("A-0412");
+  return {
+    orderId: order.id,
+    type: "add",
+    qty: "6000",
+    keepDue: true,
+    due: order.due,
+    stage: order.stage,
+    lineId: order.lineId,
+    remaining: String(order.remaining),
+  };
+}
+
+function initialLineRates() {
+  return Object.fromEntries(LINES.map((line) => [line.id, line.actualRate == null ? "" : String(line.actualRate)]));
+}
+
+function recompute(state) {
+  return {
+    ...state,
+    evaluation: evaluate(state.form, state.strategy, state.lineRates),
+  };
+}
+
+function createInitialState() {
+  const state = recompute({
+    form: defaultForm(),
+    strategy: "full",
+    lineRates: initialLineRates(),
+    applied: null,
+    notice: "",
+  });
+  state.notice = "";
+  return state;
+}
+
+function reduce(state, action) {
+  switch (action.type) {
+    case "set-form": {
+      let form = { ...state.form, ...action.patch };
+      if (action.patch.orderId && action.patch.orderId !== state.form.orderId) {
+        const order = getOrder(action.patch.orderId);
+        if (!order) return { ...state, notice: "没有这张示例订单" };
+        form = {
+          orderId: order.id,
+          type: state.form.type,
+          qty: "",
+          keepDue: true,
+          due: order.due,
+          stage: order.stage || "",
+          lineId: order.lineId,
+          remaining: order.remaining == null ? "" : String(order.remaining),
+        };
+      }
+      if (action.patch.keepDue) {
+        const order = getOrder(form.orderId);
+        form = { ...form, due: order.due };
+      }
+      return { ...recompute({ ...state, form }), notice: "" };
+    }
+    case "set-line-rate": {
+      if (!getLine(action.lineId)) return state;
+      const lineRates = { ...state.lineRates, [action.lineId]: action.value };
+      return { ...recompute({ ...state, lineRates }), notice: "" };
+    }
+    case "set-strategy": {
+      if (!["full", "partial", "reschedule"].includes(action.strategy)) {
+        return { ...state, notice: "没有这个回复选项" };
+      }
+      return { ...recompute({ ...state, strategy: action.strategy }), notice: "" };
+    }
+    case "evaluate": {
+      const next = recompute(state);
+      const notice = next.evaluation.ok ? next.evaluation.headline : next.evaluation.error.message;
+      return { ...next, notice };
+    }
+    case "apply": {
+      if (!state.evaluation?.ok) return { ...state, notice: "上面的输入还没法算，没有套用。" };
+      if (state.applied?.id === state.evaluation.id) {
+        return { ...state, notice: "这次预览已经套用，不会重复加上去。" };
+      }
+      const replacing = state.applied != null;
+      return {
+        ...state,
+        applied: {
+          id: state.evaluation.id,
+          orderId: state.evaluation.orderId,
+          strategy: state.evaluation.strategy,
+          qty: state.evaluation.qty,
+          type: state.evaluation.type,
+          remainingAfter: state.evaluation.remainingAfter,
+          headline: state.evaluation.headline,
+        },
+        notice: replacing
+          ? "已用这次预览替换上一次套用。从底账重算，没有叠加。"
+          : "已套用到本页示例。可以撤销。没有审批，也没有发给客户。",
+      };
+    }
+    case "undo": {
+      if (!state.applied) return { ...state, notice: "当前没有需要撤销的套用。" };
+      return { ...state, applied: null, notice: "已撤销本地套用；当前输入和试算预览仍保留，可继续修改或重置。" };
+    }
+    case "reset":
+      return { ...createInitialState(), notice: "已恢复默认示例：客户A / A-0412 / 加 6,000 件。" };
+    default:
+      return state;
+  }
+}
+
+const app = document.getElementById("app");
+const live = document.getElementById("live");
+let state = createInitialState();
+const sceneParam = new URLSearchParams(window.location.search).get("scene");
+let sceneOpen = sceneParam === SCENE.id;
+let needsReview = false;
+app.addEventListener("toggle", (event) => {
+  if (event.target.id === "scene-details") sceneOpen = event.target.open;
+}, true);
+
+document.getElementById("reset-top").addEventListener("click", () => dispatch({ type: "reset" }));
+app.addEventListener("input", onEdit);
+app.addEventListener("change", onEdit);
+app.addEventListener("click", onClick);
+
+function dispatch(action) {
+  if (action.type === "apply" && needsReview) return;
+  if (action.type === "set-form" || action.type === "set-line-rate") needsReview = true;
+  if (action.type === "evaluate" || action.type === "reset") needsReview = false;
+  state = reduce(state, action);
+  if (live) live.textContent = state.notice || "";
+  render();
+}
+
+function onEdit(event) {
+  const target = event.target;
+  if (target.id === "customer") {
+    const current = ORDERS.find((order) => order.id === state.form.orderId);
+    if (current?.customer === target.value) return;
+    const next = ORDERS.find((order) => order.customer === target.value);
+    if (next) dispatch({ type: "set-form", patch: { orderId: next.id } });
+    return;
+  }
+  if (target.dataset.field) {
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    dispatch({ type: "set-form", patch: { [target.dataset.field]: value } });
+    return;
+  }
+  if (target.dataset.rate) {
+    dispatch({ type: "set-line-rate", lineId: target.dataset.rate, value: target.value });
+    return;
+  }
+  if (target.name === "strategy") {
+    dispatch({ type: "set-strategy", strategy: target.value });
+  }
+}
+
+function onClick(event) {
+  const action = event.target.closest("[data-action]")?.dataset.action;
+  if (!action) return;
+  dispatch({ type: action });
+  if (action === "evaluate") document.getElementById("review")?.focus();
+}
+
+function render() {
+  const y = window.scrollY;
+  const active = document.activeElement;
+  const focusId = active?.id || "";
+  const caret = active && "selectionStart" in active ? active.selectionStart : null;
+  app.innerHTML = view(state);
+  window.scrollTo(0, y);
+  if (!focusId) return;
+  const next = document.getElementById(focusId);
+  if (!next) return;
+  next.focus();
+  if (caret != null && next.setSelectionRange) {
+    try { next.setSelectionRange(caret, caret); } catch { /* date inputs */ }
+  }
+}
+
+function view(current) {
+  const evaluation = current.evaluation;
+  return `
+    ${steps(current)}
+    ${sceneCard(current)}
+    <div class="layout">
+      ${formCard(current)}
+      ${reviewCard(current)}
+    </div>
+    <section class="card stack" aria-labelledby="board-title">
+      <div class="section-head">
+        <h2 id="board-title">交期风险表</h2>
+        <span class="light ${statusTone(current)}">${esc(statusText(current))}</span>
+      </div>
+      <p class="quiet">变更前是示例日 ${ANCHOR} 的底账。变更后按当前输入预览。套用不会叠加；撤销套用后，当前预览仍保留。</p>
+      <h3>选择一个回复方案，看风险怎么变化</h3>
+      <p class="hint">同一份输入分别试算；切换方案不会累加数量。结果是示例规则，不是对客户的承诺。</p>
+      <div class="choices" role="radiogroup" aria-label="回复选项">${strategyChoices(current)}</div>
+      ${board("变更前", evaluation.rowsBefore, "before")}
+      ${needsReview ? `<p class="hint">输入已改变，请点击“评估影响”确认当前预览后再套用。</p>` : ""}
+      ${evaluation.ok ? board("变更后", evaluation.rowsAfter, "after") : `<p class="error">变更后先空着。${esc(evaluation.error.message)}</p>`}
+      <p class="footnote">灯：红 = 晚于交期或配套不齐；黄 = 缓冲少于 2 天、数对不上或停机；灰 = 口头数或缺数；绿 = 算得清且不晚。灯只是提示，回复由人决定。</p>
+    </section>
+    <section class="card stack">
+      <h2>本地套用</h2>
+      <p>套用只改这一页的示例。不是审批，不写入别的系统，也不向客户发消息。</p>
+      ${current.applied ? `<p class="callout"><strong>本页记录</strong>${esc(current.applied.headline)}</p>` : ""}
+      <div class="actions">
+        <button type="button" class="btn" data-action="apply" ${applyDisabled(current) ? "disabled" : ""}>${esc(applyLabel(current))}</button>
+        <button type="button" class="btn ghost" data-action="undo" ${current.applied ? "" : "disabled"}>撤销套用</button>
+        <button type="button" class="btn ghost" data-action="reset">重置为默认示例</button>
+      </div>
+      ${current.notice ? `<p class="hint">${esc(current.notice)}</p>` : ""}
+    </section>
+    <details class="card stack">
+      <summary>计算口径（都是假设，标在示例上）</summary>
+      <ul>
+        <li>预计完工 = 示例日 ${ANCHOR} + 向上取整（剩余件数 ÷ 近3日日均）个日历日。不跳过周日，也不用今天的日期。</li>
+        <li>计划日产只对照，不代入。日均空着或是 0，完工写未知。</li>
+        <li>全接、部分接只借「这次多出来、承诺日前放不下」的件数。先借新厂缓冲，不够才用老厂。停机、口头数、没有日均的拆线，不编晚几天。</li>
+        <li>部分接：原日期先接一半（向下取整），另一半顺延 7 天。换交期把承诺改到本线做完的那天，不借线。</li>
+        <li>已发生的料和工不是损失，也不是客户要付的钱。</li>
+      </ul>
+    </details>
+    <p class="footnote">示例数据・非企业内部系统。公开资料推演，非真实项目。客户只有 A / B / C / D。</p>
+  `;
+}
+
+function sceneCard(current) {
+  const e = current.evaluation;
+  const matches = e.ok && e.orderId === SCENE.orderId && e.type === "add" && e.qty === SCENE.additionalPieces;
+  const finish = matches ? e.own.finishAfter : null;
+  const days = finish ? Math.round((Date.parse(finish + "T00:00:00Z") - Date.parse(SCENE.requestedDate + "T00:00:00Z")) / 86400000) : null;
+  const check = !matches ? "当前输入与固定示例不同，请先恢复默认示例，再比较客户希望日期。" : !finish ? "缺少有效日均或剩余量，无法判断希望日期。" : days > 0 ? `按当前输入，本线预计 ${finish} 完工，比客户希望的 ${SCENE.requestedDate} 晚 ${days} 天；该日期不能直接当成可承诺日期。` : `按当前输入，本线预计 ${finish} 完工，可在客户希望的 ${SCENE.requestedDate} 前完成；仍需人核实其他限制。`;
+  return `<section class="card scene" id="scene-${esc(SCENE.id)}" aria-labelledby="scene-title">
+    <div class="section-head"><h2 id="scene-title">客户 A · 订单变化场景</h2><span class="light tone-yellow">虚构情节</span></div>
+    <p>${esc(SCENE.disclaimer)}</p>
+    ${sceneParam && sceneParam !== SCENE.id ? `<p class="error">找不到场景 ${esc(sceneParam)}，已显示默认示例。</p>` : ""}
+    <details id="scene-details" ${sceneOpen ? "open" : ""}>
+      <summary>查看场景详情与公开背景</summary>
+      <p>示例日 ${esc(SCENE.baselineDate)}：客户 A 希望 A-0412 加 6,000 件，原交期 11/28 不变；另一项待检验的希望日期为 12/02。新厂吊挂 3 线缝制中，示例设定面料已到、已裁 70%。</p>
+      <p><strong>公开背景：</strong>迅销截至 ${esc(SCENE.evidenceDate)} 的生产伙伴名单第 3 页第 231 项列有 Shenzhou Knitting (Anhui) Co., Ltd.。名单包含直接和间接合作工厂，不能据此确定本示例对应品牌或订单。 <a href="${esc(SCENE.evidenceUrl)}">查看官方名单</a></p>
+      <p><strong>12/02 可行性：</strong>${esc(check)}</p>
+      <p>固定规则试算，不是实时 AI；已投入不等于损失。方案由人审阅和决定。</p>
+      <p>场景版本 ${esc(SCENE.version)} · <a href="${esc(SCENE.docUrl)}">阅读同一场景说明</a></p>
+      <button type="button" class="btn ghost" data-action="reset">载入固定示例</button>
+    </details>
+  </section>`;
+}
+
+function steps(current) {
+  const ok = current.evaluation.ok;
+  const applied = ok && current.applied?.id === current.evaluation.id;
+  const items = [
+    ["填写改单", ok],
+    ["规则快评", ok],
+    ["预览风险变化", ok],
+    ["本地套用（非审批）", applied],
+  ];
+  return `<ol class="steps">${items.map(([label, done], index) =>
+    `<li class="step ${done ? "is-done" : ""} ${!done && (index === 0 || items[index - 1][1]) ? "is-on" : ""}"><i>${index + 1}</i>${label}</li>`
+  ).join("")}</ol>`;
+}
+
+function formCard(current) {
+  const form = current.form;
+  const order = ORDERS.find((item) => item.id === form.orderId);
+  const error = current.evaluation.ok ? null : current.evaluation.error;
+  const customers = [...new Set(ORDERS.map((item) => item.customer))];
+  const invalid = (field) => error?.field === field;
+  return `<section class="card" aria-labelledby="form-title">
+    <h2 id="form-title">填写改单</h2>
+    <div class="grid-2">
+      <div class="field">
+        <label for="customer">客户</label>
+        <select id="customer">${customers.map((name) => `<option ${name === order.customer ? "selected" : ""}>${esc(name)}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label for="orderId">订单号</label>
+        <select id="orderId" data-field="orderId">${ORDERS.filter((item) => item.customer === order.customer).map((item) =>
+          `<option value="${item.id}" ${item.id === form.orderId ? "selected" : ""}>${esc(item.id)}</option>`
+        ).join("")}</select>
+      </div>
+    </div>
+    <fieldset class="field">
+      <legend>改单类型</legend>
+      <div class="types">${CHANGE_TYPES.map((item) => `<label class="type"><input type="radio" name="change-type" data-field="type" value="${item.id}" ${form.type === item.id ? "checked" : ""}>${esc(item.label)}</label>`).join("")}</div>
+    </fieldset>
+    <div class="grid-2">
+      <div class="field">
+        <label for="qty">${form.type === "delay" ? "推迟天数" : "变更数量（件）"}</label>
+        <input id="qty" data-field="qty" inputmode="numeric" autocomplete="off" value="${esc(form.qty)}" aria-invalid="${invalid("qty")}" aria-describedby="qty-hint">
+        <span class="hint" id="qty-hint">0 表示这次没有数量变化。负数和小数不能算。</span>
+      </div>
+      <div class="field">
+        <label for="due">交期</label>
+        <input id="due" type="date" data-field="due" value="${esc(form.due)}" ${form.keepDue ? "disabled" : ""} aria-invalid="${invalid("due")}">
+        <label class="check"><input id="keepDue" type="checkbox" data-field="keepDue" ${form.keepDue ? "checked" : ""}>交期不变（用底账日期）</label>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="stage">当前工序</label>
+        <select id="stage" data-field="stage">${STAGES.map((item) => `<option value="${item.id}" ${form.stage === item.id ? "selected" : ""}>${esc(item.label)}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label for="lineId">厂区 / 线别</label>
+        <select id="lineId" data-field="lineId">${LINES.map((line) => `<option value="${line.id}" ${form.lineId === line.id ? "selected" : ""}>${esc(line.name)}</option>`).join("")}</select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="remaining">本单剩余（件，可改）</label>
+      <input id="remaining" data-field="remaining" inputmode="numeric" autocomplete="off" value="${esc(form.remaining)}" aria-invalid="${invalid("remaining")}" aria-describedby="remain-hint">
+      <span class="hint" id="remain-hint">留空表示未知，完工不会被猜一个日期。昨日 ${yesterday(order)}，不参与计算。</span>
+    </div>
+    ${error ? `<p class="error">${esc(error.message)}</p>` : ""}
+    ${current.evaluation.ok ? capacityBlock(current.evaluation.capacity) : ""}
+    <h3>各线近3日日均（件/日，可改）</h3>
+    <p class="hint">完工只用这一列。计划日产不代入。空着就是未知。</p>
+    <table class="rates">
+      <thead><tr><th>线别</th><th>状态</th><th>计划日产</th><th>近3日日均</th></tr></thead>
+      <tbody>${LINES.map((line) => `<tr>
+        <td>${esc(line.name)}</td>
+        <td>${esc(LINE_STATUS_LABEL[line.status] || line.status)}</td>
+        <td>${line.plannedRate == null ? "—" : formatInt(line.plannedRate)}</td>
+        <td><input id="rate-${line.id}" data-rate="${line.id}" inputmode="numeric" aria-label="${esc(line.name)}近3日日均" value="${esc(current.lineRates[line.id] ?? "")}" aria-invalid="${invalid(`rate:${line.id}`)}"></td>
+      </tr>`).join("")}</tbody>
+    </table>
+    <div class="actions" style="margin-top:12px">
+      <button type="button" class="btn wide" data-action="evaluate">评估影响</button>
+      <button type="button" class="btn ghost wide" data-action="reset">重置为默认示例</button>
+    </div>
+  </section>`;
+}
+
+function capacityBlock(capacity) {
+  if (!capacity?.known) return `<p class="hint">负荷无法计算：缺日均、缺剩余，或这段时间没有可排的天数。</p>`;
+  return `<div class="callout">
+    <strong>${esc(capacity.levelText)}</strong>
+    <span class="hint">${esc(capacity.loadLabel)} ${formatInt(capacity.loadPieces)} 件；${capacity.days} 个日历日可做 ${formatInt(capacity.canMake)} 件。不显示百分比。</span>
+    <div class="bar ${capacity.level}"><i style="width:${capacity.width}%"></i></div>
+  </div>`;
+}
+
+function reviewCard(current) {
+  const evaluation = current.evaluation;
+  if (!evaluation.ok) {
+    return `<section class="card" id="review" tabindex="-1" aria-labelledby="review-title">
+      <h2 id="review-title">规则快评</h2>
+      <p class="error">${esc(evaluation.error.message)}</p>
+      <p class="hint">没有用猜测把表填满。改完输入会按规则重算。</p>
+    </section>`;
+  }
+  return `<section class="card" id="review" tabindex="-1" aria-labelledby="review-title">
+    <div class="section-head">
+      <h2 id="review-title">规则快评</h2>
+      <span class="light tone-${evaluation.light}">${lightName(evaluation.light)} · 快评</span>
+    </div>
+    <p>${esc(evaluation.headline)}</p>
+    <p class="hint">${esc(evaluation.lightReason)}快评完成前，不答应也不拒绝。</p>
+    <div class="chips">
+      <div class="chip"><strong>走到哪</strong><br>${esc(evaluation.whereText)}</div>
+      <div class="chip"><strong>瓶颈</strong><br>${esc(evaluation.bottleneck)}</div>
+    </div>
+    <h3>已发生 / 尚未发生 / 待确认</h3>
+    <p class="hint">${esc(evaluation.cost.incurredSummary)}</p>
+    <p class="hint">${esc(evaluation.cost.recoverableSummary)}</p>
+    <p class="hint">${esc(evaluation.cost.incrementalSummary)}</p>
+    <table>
+      <thead><tr><th>节点</th><th>状态</th><th>归类</th></tr></thead>
+      <tbody>${evaluation.cost.rows.map((row) => `<tr><td>${esc(row.node)}</td><td>${esc(row.state)}<br><span class="quiet">${esc(row.detail)}</span></td><td>${esc(row.bucket)}</td></tr>`).join("")}</tbody>
+    </table>
+    <h3>对他单</h3>
+    <p>${esc(evaluation.otherImpact)}</p>
+    <h3>建议谁来看</h3>
+    <div class="people">${evaluation.reviewers.map((person) => `<div class="person"><b>${esc(person.role)}</b><span class="quiet">${esc(person.reason)}</span></div>`).join("")}</div>
+    ${evaluation.warnings.length ? `<ul class="trace">${evaluation.warnings.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>` : ""}
+    <h3>计算过程</h3>
+    <ol class="trace">${evaluation.trace.map((item) => `<li>${esc(item)}</li>`).join("")}</ol>
+  </section>`;
+}
+
+function strategyChoices(current) {
+  return STRATEGIES.map((item) => {
+    const choice = current.evaluation.ok ? current.evaluation.choices[item.id] : null;
+    const result = current.evaluation.ok ? evaluate(current.form, item.id, current.lineRates) : null;
+    const finish = result?.own?.finishAfter || "未知";
+    const borrow = result?.borrow?.known ? `${formatInt(result.borrow.pieces)} 件` : "未知";
+    const on = current.strategy === item.id;
+    return `<label class="choice ${on ? "is-on" : ""}">
+      <input id="strategy-${item.id}" type="radio" name="strategy" value="${item.id}" ${on ? "checked" : ""}>
+      <span><strong>${esc(choice?.title || item.label)}</strong>
+        ${result ? `<span class="choice-metrics"><span>本线预计完工 <b>${esc(finish)}</b></span><span>需借产量 <b>${esc(borrow)}</b></span><span>快评 <b>${esc(lightName(result.light))}</b></span></span>` : ""}
+        <small>${esc(choice?.detail || "")}</small></span>
+    </label>`;
+  }).join("");
+}
+
+function board(title, rows, key) {
+  const body = rows.map((row) => `<div class="board-row row-${row.light} ${row.changed ? "is-changed" : ""}" role="row">
+    ${cell("状态", `<span class="light tone-${row.light}">${esc(row.lightLabel)}</span>`)}
+    ${cell("订单", esc(row.id))}
+    ${cell("客户", esc(row.customer))}
+    ${cell("交期", esc(row.dueText))}
+    ${cell("线别", esc(row.lineName))}
+    ${cell("剩余", esc(row.remainingText))}
+    ${cell("日均", esc(row.rateText))}
+    ${cell("预计完工", esc(row.finishText))}
+    ${cell("说明", `${esc(row.note)}<small>${esc(row.meta)}</small>`, "note")}
+  </div>`).join("");
+  return `<div class="board" role="table" aria-label="${esc(title)}">
+    <div class="section-head"><h3>${esc(title)}</h3></div>
+    <div class="board-row board-head" role="row">
+      ${["状态", "订单", "客户", "交期", "线别", "剩余", "日均", "预计完工", "说明"].map((name) => `<div role="columnheader">${name}</div>`).join("")}
+    </div>
+    ${body}
+  </div>`;
+}
+
+function cell(label, html, extra = "") {
+  return `<div class="cell ${extra}" role="cell" data-label="${label}">${html}</div>`;
+}
+
+function statusText(current) {
+  if (!current.evaluation.ok) return "还不能评估";
+  if (current.applied?.id === current.evaluation.id) return "已套用到本页";
+  if (current.applied) return "预览已变 · 再套用会替换，不会叠加";
+  return "预览中 · 尚未套用";
+}
+
+function statusTone(current) {
+  if (!current.evaluation.ok) return "tone-grey";
+  if (current.applied?.id === current.evaluation.id) return "tone-green";
+  return "tone-yellow";
+}
+
+function applyDisabled(current) {
+  return needsReview || !current.evaluation.ok || current.applied?.id === current.evaluation.id;
+}
+
+function applyLabel(current) {
+  if (needsReview) return "请先重新评估";
+  if (!current.evaluation.ok) return "先改到可以计算";
+  if (current.applied?.id === current.evaluation.id) return "这次已经套用";
+  if (current.applied) return "用这次预览替换";
+  return "本地套用此预览";
+}
+
+function lightName(light) {
+  return { red: "红", yellow: "黄", grey: "灰", green: "绿" }[light] || light;
+}
+
+function yesterday(order) {
+  const plan = order.yesterdayPlan == null ? "—" : formatInt(order.yesterdayPlan);
+  const actual = order.yesterdayActual == null ? "—" : formatInt(order.yesterdayActual);
+  return `${plan}/${actual}`;
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[ch]));
+}
+
+render();
+
+</script>
+</body>
+</html>
