@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - "demos/order-risk/**"
+      - "demos/material-review/**"
+      - "demos/shenzhou/**"
       - "scripts/**"
       - "case-07-shenzhou-capacity-shift-pilot.md"
       - "assets/case-07/order-change-scene-v2.pdf"
@@ -14,6 +16,8 @@ on:
     branches: [main]
     paths:
       - "demos/order-risk/**"
+      - "demos/material-review/**"
+      - "demos/shenzhou/**"
       - "scripts/**"
       - "case-07-shenzhou-capacity-shift-pilot.md"
       - "assets/case-07/order-change-scene-v2.pdf"
@@ -35,6 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: node --test demos/order-risk/tests/*.test.js
+      - run: node --check demos/material-review/app.js
       - run: node scripts/build-preview.mjs --check
       - run: node scripts/generate-scene.mjs --check
 
@@ -53,6 +58,9 @@ jobs:
           cp demos/order-risk/index.html demos/order-risk/styles.css \
             demos/order-risk/app.js demos/order-risk/calc.js \
             demos/order-risk/data.js demos/order-risk/scene.js demos/order-risk/.nojekyll _site/
+          mkdir -p _site/shenzhou/material
+          cp demos/shenzhou/index.html _site/shenzhou/
+          cp demos/material-review/index.html demos/material-review/style.css demos/material-review/app.js _site/shenzhou/material/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

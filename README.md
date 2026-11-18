@@ -46,13 +46,14 @@ AI 交付经理的主作品：同一条退换货主线，从流程拆到人机�
 | --- | --- | --- |
 | [05｜销售线索 Agent 交付](./case-05-sales-lead-analysis.md) · [在线体验](https://sales-lead-web.coze.site) | 把咨询或沟通记录整理成可复核的线索 | 七段输出、冲突只标记、话术草稿、人工决定是否跟进 |
 
-### 业务场景实践｜制造业真实企业推演
+### 业务场景实践｜申洲针织制造运营专项
 
-基于公开资料（年报、ESG 报告、政府与媒体报道）的推演，不含任何内部信息。
+基于公开资料构建模拟场景，不含企业内部数据。[专项导航与在线体验](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/)
 
-| Case | 内容 | 关注重点 |
+| 场景 | 内容 | 关注重点 |
 | --- | --- | --- |
-| [07｜申洲针织（安徽）产能腾挪期 AI 落地试点](./case-07-shenzhou-capacity-shift-pilot.md) · [PDF](./assets/case-07/shenzhou-ai-pilot.pdf) | 新老厂产能腾挪期，计划部每张单的真实进度没有准数 | 先摸清现状、做交期风险表、准数规则、拍板事项，再谈系统与 AI |
+| [07｜产能腾挪与订单变化](./case-07-shenzhou-capacity-shift-pilot.md) · [在线体验](https://fionahong-lab.github.io/ai-agent-delivery-casebook/?scene=change-add-a0412) | 新老厂并行与订单加单 | 交期风险、产能缓冲与人工决定 |
+| [08｜面料用量异常处理](./case-08-shenzhou-material-reconciliation.md) · [流程回放](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/material/) | 领退料与标准用量差异 | 资料核对、岗位反馈、人工移交；预设回放 |
 
 ## 职业交付证据 / Career Evidence
 
