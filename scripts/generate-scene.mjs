@@ -34,7 +34,7 @@ const file = 'case-07-shenzhou-capacity-shift-pilot.md';
 let source = readFileSync(file, 'utf8');
 const block = `${markerStart}\n## 九、订单变化场景\n\n${content}\n${markerEnd}`;
 const summary = content.replace(/ · \[下载订单场景说明 PDF\]\([^)]+\)/, '').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1：$2').replace(/<[^>]+>/g, '').replace(/\*\*/g, '').replace(/^### /gm, '').replace(/^[-] /gm, '方案：');
-const sourceHeading = '## 来源（详见 research.md）';
+const sourceHeading = '## 来源';
 const blockPattern = new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}`);
 if (!source.includes(sourceHeading)) throw new Error('找不到来源章节，未修改文档');
 if (source.includes(markerStart) && source.indexOf(markerStart) < source.indexOf(sourceHeading)) {
