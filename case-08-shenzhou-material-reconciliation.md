@@ -2,7 +2,7 @@
 
 > 基于公开资料与行业流程的模拟案例，订单、数据和岗位反馈均为构造示例。公开演示是预设的流程回放，不调用模型或企业系统。
 
-[在线回放](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/material/) · [返回申洲专项](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/)
+[在线回放](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/material/) · [返回申洲专项](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/) · [专项总纲](./shenzhou-overview.md)
 
 ## 问题与触发
 

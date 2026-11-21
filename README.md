@@ -48,7 +48,7 @@ AI 交付经理的主作品：同一条退换货主线，从流程拆到人机�
 
 ### 业务场景实践｜申洲针织制造运营专项
 
-基于公开资料构建模拟场景，不含企业内部数据。[专项导航与在线体验](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/)
+基于公开资料构建模拟场景，不含企业内部数据。[专项总纲](./shenzhou-overview.md) · [专项导航与在线体验](https://fionahong-lab.github.io/ai-agent-delivery-casebook/shenzhou/)
 
 | 场景 | 内容 | 关注重点 |
 | --- | --- | --- |
